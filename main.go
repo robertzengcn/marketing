@@ -8,8 +8,9 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/beego/beego/v2/server/web/session/redis"
 	// "github.com/beego/beego/v2/task"
-	// "marketing/controllers"
+	"marketing/controllers"
 	"github.com/beego/beego/v2/core/config"
+	"github.com/beego/i18n"
 )
 
 func init() {
@@ -48,9 +49,10 @@ func innerFunc(errorObj error ) {
 
 
 func main() {
-	// beego.InsertFilter("/*", beego.BeforeExec, controllers.Filter_user)
+	beego.InsertFilter("/*", beego.BeforeExec, controllers.Filter_user)
 	// utils.InitTask()
 	// task.StartTask()
 	// defer task.StopTask()
+	beego.AddFuncMap("i18n", i18n.Tr)
 	beego.Run()
 }
