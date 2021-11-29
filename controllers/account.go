@@ -35,6 +35,7 @@ func (c *AccountController) Validaccount() {
 		c.ErrorJson(202108031641149,err.Error(),nil)
 	} else {
 		c.SetSession("uid", account.Id)
+		models.DefaultAccountLoginLog.AccountLogin(&account)
 		accountRes :=AccountResponse{Id:account.Id,
 			Name:account.Name,
 			Email: account.Email,

@@ -15,7 +15,7 @@ type Campaign struct {
 }
 
 func (u *Campaign) TableName() string {
-	return "mk_campaign"
+	return "campaign"
 }
 
 // 设置引擎为 INNODB
@@ -25,7 +25,7 @@ func (u *Campaign) TableEngine() string {
 
 func init() {
 	// set default database
-	orm.RegisterModel(new(Campaign))
+	orm.RegisterModelWithPrefix("mk_",new(Campaign))
 	// create table
 	// orm.RunSyncdb("default", false, true)
 }

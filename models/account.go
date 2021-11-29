@@ -20,7 +20,7 @@ type Account struct {
 }
 
 func (u *Account) TableName() string {
-	return "mk_account"
+	return "account"
 }
 
 // 设置引擎为 INNODB
@@ -30,7 +30,7 @@ func (u *Account) TableEngine() string {
 
 func init() {
 	// set default database
-	orm.RegisterModel(new(Account))
+	orm.RegisterModelWithPrefix("mk_",new(Account))
 	// create table
 	// orm.RunSyncdb("default", false, true)
 }
