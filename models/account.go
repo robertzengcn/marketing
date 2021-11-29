@@ -11,7 +11,7 @@ import (
 )
 
 type Account struct {
-	Id      int64     `orm:"auto"`
+	Id      int64     `orm:"pk;auto"`
 	Name    string    `orm:"size(100)"`
 	Password  string    `orm:"size(255)"`
 	Email   string    `orm:"size(150)"`

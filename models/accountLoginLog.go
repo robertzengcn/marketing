@@ -8,7 +8,7 @@ import (
 )
 var DefaultAccountLoginLog *AccountLoginLog
 type AccountLoginLog struct {
-	Id      int64     `orm:"auto"`
+	Id      int64     `orm:"pk;auto"`
 	Account *Account  `orm:"rel(fk);on_delete(do_nothing)"`
 	LoginTime time.Time `orm:"auto_now_add;type(datetime)"`
 }

@@ -10,7 +10,7 @@ import (
 )
 
 type Campaign struct {
-	Campaign_id      int64     `orm:"auto"`
+	Campaign_id      int64     `orm:"pk;auto"`
 	Campaign_name    string    `orm:"size(100)"`
 }
 

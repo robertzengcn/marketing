@@ -8,5 +8,6 @@ require (
 	github.com/Unknwon/goconfig v1.0.0 // indirect
 	github.com/beego/i18n v0.0.0-20161101132742-e9308947f407 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4
 )
