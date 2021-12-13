@@ -6,6 +6,7 @@ import (
 	"time"
 	guuid "github.com/google/uuid"
 )
+var DefaultAccountToken *AccountToken
 type AccountToken struct{
 	TokenId int64 `orm:"pk;auto"`
 	TokenVal string
@@ -33,7 +34,7 @@ func (u *AccountToken) GenAccounttoken(account *Account) (token string,err error
 	ac.Account=account
 	ac.TokenVal=token
 	now := time.Now()
-	ac.TokenExpired=now.AddDate(0, 0, 1)
+	ac.TokenExpired=now.AddDate(0, 0, 2)
 	_, err = o.Insert(&ac)
 	return token,err
 }

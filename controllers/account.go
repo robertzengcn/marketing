@@ -10,6 +10,7 @@ type AccountResponse struct{
 	Id int64
 	Name    string
 	Email   string
+	Token   string
 }
 type AccountController struct {
 	BaseController
@@ -36,9 +37,14 @@ func (c *AccountController) Validaccount() {
 	} else {
 		c.SetSession("uid", account.Id)
 		models.DefaultAccountLoginLog.AccountLogin(&account)
+		token ,tokenerr:=models.DefaultAccountToken.GenAccounttoken(&account)
+		if(tokenerr!=nil){
+			c.ErrorJson(20211201164342,tokenerr.Error(),nil)
+		}
 		accountRes :=AccountResponse{Id:account.Id,
 			Name:account.Name,
 			Email: account.Email,
+			Token:token,
 		}
 
 		c.SuccessJson(accountRes)

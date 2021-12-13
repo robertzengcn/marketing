@@ -2,16 +2,17 @@ package models
 
 import (
 	// "fmt"
-	// "errors"
+	 "errors"
 	// "fmt"
 	  "github.com/beego/beego/v2/client/orm"
 	_ "github.com/go-sql-driver/mysql"
 	// "time"
 )
-
+var DefaultCampaign *Campaign
 type Campaign struct {
-	Campaign_id      int64     `orm:"pk;auto"`
-	Campaign_name    string    `orm:"size(100)"`
+	CampaignId      int64     `orm:"pk;auto"`
+	CampaignName    string    `orm:"size(100)"`
+	EmailTpl   *EmailTpl	`orm:"rel(fk);on_delete(do_nothing)"`
 }
 
 func (u *Campaign) TableName() string {
@@ -31,10 +32,23 @@ func init() {
 }
 
 ///create campaign with name
-func CreateCampaign(username string) (id int64, err error) {
+func (u *Campaign)CreateCampaign(username string) (id int64, err error) {
 	o := orm.NewOrm()
 	var us Campaign
-	us.Campaign_name = username
+	us.CampaignName = username
 	id, err = o.Insert(&us)
 		return id,err
+}
+/// show all campaign
+func (u *Campaign)ListCampaign(start int,limitNum int)([]Campaign,error){
+	o := orm.NewOrm()
+	var cam []Campaign
+	count, e := o.QueryTable(new(Campaign)).Limit(limitNum,start).All(&cam, "Campaign_id", "Campaign_name")
+	if e != nil {
+		return nil, e
+	}
+	if count <= 0 {
+		return nil, errors.New("nothing found")
+	}
+	return cam, nil
 }
