@@ -40,6 +40,7 @@ func init() {
 	
 	// register model
 	orm.RunSyncdb("default", false, true)
+	orm.Debug,_ = config.Bool("dbdebug")
 	// beego.BConfig.WebConfig.Session.SessionProvider = "redis"
 	// beego.BConfig.WebConfig.Session.SessionProviderConfig = "redis:6379"
 }

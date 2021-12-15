@@ -13,11 +13,11 @@ type MailLog struct {
 	TplRecord time.Time `orm:"auto_now;type(datetime)"`
 }
 func (u *MailLog) TableName() string {
-	return "email_tpl"
+	return "mail_log"
 }
 
 func init() {
-orm.RegisterModelWithPrefix("mk_", new(EmailTpl))
+orm.RegisterModelWithPrefix("mk_", new(MailLog))
 }
 
 
