@@ -52,7 +52,7 @@ func (u *Campaign)ListCampaign(start int,limitNum int)([]Campaign,error){
 	}
 	return cam, nil
 }
-/// find campaign by campaign id
+// find campaign by campaign id
 func (u *Campaign)FindCambyid(id int64)(Campaign,error){
 	o := orm.NewOrm()
 	campaign := Campaign{CampaignId: id}

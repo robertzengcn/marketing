@@ -14,7 +14,7 @@ type CampaignController struct {
 func (c *CampaignController) Prepare() {
     c.EnableXSRF = false
 }
-
+//create campaign
 func (c *CampaignController) CreateCampaign() {
 	l := logs.GetLogger()
 	l.Println("this is a message of get create campaign")
@@ -29,7 +29,7 @@ func (c *CampaignController) CreateCampaign() {
 
 	c.SuccessJson(campaing_id)
 }
-///list campaign use request
+//list campaign use request
 func (c *CampaignController) ListCampaign() {
 	start,_ := c.GetInt("start",0)
 	num,_:= c.GetInt("number",10)
@@ -40,6 +40,25 @@ func (c *CampaignController) ListCampaign() {
 
 	}
 	c.SuccessJson(campagins)
+}
+// create site api
+func (c *CampaignController) Createsite(){
+	site:= c.GetString("site")
+	email:= c.GetString("email")
+	campaignId,_:=c.GetInt64("campaigin_id",0)
+	if(campaignId<=0){
+		c.ErrorJson(20211216154049,"campaign id empty",nil)
+	}
+	camPaign,err:=models.DefaultCampaign.FindCambyid(campaignId)
+	if(err!=nil){
+		c.ErrorJson(20211216154653,err.Error(),nil)
+	}
+	siteId,siteErr:=models.DefaultSiteObj.AddSite(&camPaign,email,site)
+	if(siteErr!=nil){
+		c.ErrorJson(20211216155058,siteErr.Error(),nil)
+	}
+	c.SuccessJson(siteId)
+
 }
 
 
