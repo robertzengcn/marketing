@@ -4,16 +4,29 @@ import (
 	// beego "github.com/beego/beego/v2/server/web"
 	"marketing/models"
 	"github.com/beego/beego/v2/core/logs"
+	"marketing/utils"
+	"github.com/beego/i18n"
 )
 
 type CampaignController struct {
 	// beego.Controller
 	BaseController
+	i18n.Locale
 }
 
 func (c *CampaignController) Prepare() {
     c.EnableXSRF = false
 }
+func (c *CampaignController)ChildPrepare(){
+	
+}
+func (c *CampaignController)Welcome(){
+	l := logs.GetLogger()
+	c.Data["langTemplateKey"] = c.GetString("lang")
+	l.Println(c.Data["langTemplateKey"])
+	c.TplName = "welcome.tpl" 
+}
+
 //create campaign
 func (c *CampaignController) CreateCampaign() {
 	l := logs.GetLogger()
@@ -45,9 +58,13 @@ func (c *CampaignController) ListCampaign() {
 func (c *CampaignController) Createsite(){
 	site:= c.GetString("site")
 	email:= c.GetString("email")
+	
 	campaignId,_:=c.GetInt64("campaigin_id",0)
 	if(campaignId<=0){
 		c.ErrorJson(20211216154049,"campaign id empty",nil)
+	}
+	if(!utils.ValidEmail(email)){
+		c.ErrorJson(20211217152054,c.Tr("en-US","welcome"),nil)
 	}
 	camPaign,err:=models.DefaultCampaign.FindCambyid(campaignId)
 	if(err!=nil){

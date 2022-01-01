@@ -7,7 +7,10 @@ import (
 	// "github.com/beego/beego/v2/core/logs"
 	// "reflect"
 	// "fmt"
-    "marketing/utils"
+	"github.com/beego/i18n"
+	"marketing/utils"
+	"fmt"
+	"strings"
 )
 
 type Controllerreturn interface {
@@ -17,6 +20,7 @@ type Controllerreturn interface {
 
 type BaseController struct {
 	beego.Controller
+	i18n.Locale
 }
 
 type ReturnMsg struct {
@@ -26,28 +30,31 @@ type ReturnMsg struct {
 	Data   interface{}
 }
 
-func (this *BaseController) SuccessJson(data interface{}) {
+type langType struct {
+	Lang string
+	Name string
+}
+
+func (c *BaseController) SuccessJson(data interface{}) {
 
 	res := ReturnMsg{
 		true, 200, "success", data,
 	}
-	this.Data["json"] = res
-	this.ServeJSON() //对json进行序列化输出
-	this.StopRun()
+	c.Data["json"] = res
+	c.ServeJSON() //对json进行序列化输出
+	c.StopRun()
 }
 
-func (this *BaseController) ErrorJson(code int, msg string, data interface{}) {
+func (c *BaseController) ErrorJson(code int, msg string, data interface{}) {
 
 	res := ReturnMsg{
 		false, code, msg, data,
 	}
 
-	this.Data["json"] = res
-	this.ServeJSON() //对json进行序列化输出
-	this.StopRun()
+	c.Data["json"] = res
+	c.ServeJSON() //对json进行序列化输出
+	c.StopRun()
 }
-
-
 
 func Filter_user(ctx *context.Context) {
 	s := []string{"/login", "/login/accountlogin"} //defined url that not need to valid user login
@@ -76,3 +83,157 @@ func Filter_user(ctx *context.Context) {
 		}
 	}
 }
+
+type ChildPrepareHolder interface {
+	ChildPrepare()
+}
+
+func (c *BaseController) Prepare() {
+	langstring, err := beego.AppConfig.String("langs::types")
+	if err != nil {  // 2
+		fmt.Println("Failed to load languages from the app.conf")
+		// return
+	}
+	langs := strings.Split(langstring,"|")
+	langNamestring, err := beego.AppConfig.String("langs::names")
+	if err != nil {  // 2
+		fmt.Println("Failed to load languages name from the app.conf")
+		// return
+	}
+	names := strings.Split(langNamestring,"|")
+	
+	langTypes := make([]*langType, 0, len(langs))
+	for i, v := range langs {
+		langTypes = append(langTypes, &langType{
+			Lang: v,
+			Name: names[i],
+		})
+	}
+
+	// names,_ := strings.Split(beego.AppConfig.String("lang::names"), "|")
+	
+	// isNeedRedir := false
+	hasCookie := false
+
+	lang := c.GetString("lang")
+
+	if len(lang) == 0 {
+		lang = c.Ctx.GetCookie("lang")
+		hasCookie = true
+	} 
+	if !i18n.IsExist(lang) {
+		lang = ""
+		// isNeedRedir = false
+		hasCookie = false
+	}
+
+	if len(lang) == 0 {
+		al := c.Ctx.Request.Header.Get("Accept-Language")
+		if len(al) > 4 {
+			al = al[:5] // Only compare first 5 letters.
+			if i18n.IsExist(al) {
+				lang = al
+			}
+		}
+	}
+	if len(lang) == 0 {
+		lang = "en-US"
+		// isNeedRedir = false
+	}
+	curLang := langType{
+		Lang: lang,
+	}
+
+	if !hasCookie {
+		c.Ctx.SetCookie("lang", curLang.Lang, 1<<31-1, "/")
+	}
+
+	restLangs := make([]*langType, 0, len(langTypes)-1)
+	for _, v := range langTypes {
+		if lang != v.Lang {
+			restLangs = append(restLangs, v)
+		} else {
+			curLang.Name = v.Name
+		}
+	}
+	c.Lang = lang
+    c.Data["Lang"] = curLang.Lang
+    c.Data["CurLang"] = curLang.Name
+    c.Data["RestLangs"] = restLangs
+
+	// 	 l := logs.GetLogger()
+	//      l.Println("111111")
+	// l.Println(c.Data["langTemplateKey"])
+	// c.Data["Lang"]=c.Data["langTemplateKey"]
+	c.EnableXSRF = false
+	if app, ok := c.AppController.(ChildPrepareHolder); ok { // 5
+		app.ChildPrepare()
+	}
+	// return isNeedRedir
+}
+
+// func (c *BaseController) setLangVer() bool {
+//     isNeedRedir := false
+//     hasCookie := false
+
+//     // 1. Check URL arguments.
+//     lang := c.GetString("lang")
+
+//     // 2. Get language information from cookies.
+//     if len(lang) == 0 {
+//         lang = c.Ctx.GetCookie("lang")
+//         hasCookie = true
+//     } else {
+//         isNeedRedir = true
+//     }
+
+//     // Check again in case someone modify by purpose.
+//     if !i18n.IsExist(lang) {
+//         lang = ""
+//         isNeedRedir = false
+//         hasCookie = false
+//     }
+
+//     // 3. Get language information from 'Accept-Language'.
+//     if len(lang) == 0 {
+//         al := c.Ctx.Request.Header.Get("Accept-Language")
+//         if len(al) > 4 {
+//             al = al[:5] // Only compare first 5 letters.
+//             if i18n.IsExist(al) {
+//                 lang = al
+//             }
+//         }
+//     }
+
+//     // 4. Default language is English.
+//     if len(lang) == 0 {
+//         lang = "en-US"
+//         isNeedRedir = false
+//     }
+
+//     curLang := langType{
+//         Lang: lang,
+//     }
+
+//     // Save language information in cookies.
+//     if !hasCookie {
+//         c.Ctx.SetCookie("lang", curLang.Lang, 1<<31-1, "/")
+//     }
+
+//     restLangs := make([]*langType, 0, len(langTypes)-1)
+//     for _, v := range langTypes {
+//         if lang != v.Lang {
+//             restLangs = append(restLangs, v)
+//         } else {
+//             curLang.Name = v.Name
+//         }
+//     }
+
+//     // Set language properties.
+//     c.Lang = lang
+//     c.Data["Lang"] = curLang.Lang
+//     c.Data["CurLang"] = curLang.Name
+//     c.Data["RestLangs"] = restLangs
+
+//     return isNeedRedir
+// }

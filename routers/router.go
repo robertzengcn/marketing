@@ -9,22 +9,30 @@ import (
 )
 
 func init() {
-	langs, err := beego.AppConfig.String("langs")  // 1
+	langs, err := beego.AppConfig.String("langs::types")  // 1
 	if err != nil {  // 2
   	fmt.Println("Failed to load languages from the app.conf")
   	// return
 	}
+	// fmt.Println("11111")
 	langsArr := strings.Split(langs, "|")
-	for _, lang := range langsArr {  // 4
-		if err := i18n.SetMessage(lang, "conf/"+lang+".ini"); err != nil {  // 5
+	fmt.Printf("%v", langsArr)
+	for _, lang := range langsArr {  
+		fmt.Print(lang)
+		if err := i18n.SetMessage(lang, "conf/"+lang+".ini"); 
+		err != nil {  // 5
 		  fmt.Println("Failed to set message file for l10n")
-		//   return
+		   return
 		}
 	  }
+
 	  
     beego.Router("/", &controllers.MainController{})
 	beego.Router("/campaign/create", &controllers.CampaignController{},"post:CreateCampaign")
 	beego.Router("/login/accountlogin", &controllers.AccountController{},"post:Validaccount")
 	beego.Router("/campaign", &controllers.CampaignController{},"get:ListCampaign")
 	beego.Router("/addSite", &controllers.CampaignController{},"post:Createsite")
+	beego.Router("/welcome", &controllers.CampaignController{},"get:Welcome")
 }
+
+
