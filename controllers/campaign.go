@@ -6,6 +6,7 @@ import (
 	"github.com/beego/beego/v2/core/logs"
 	"marketing/utils"
 	"github.com/beego/i18n"
+	// "fmt"
 )
 
 type CampaignController struct {
@@ -14,9 +15,9 @@ type CampaignController struct {
 	i18n.Locale
 }
 
-func (c *CampaignController) Prepare() {
-    c.EnableXSRF = false
-}
+// func (c *CampaignController) Prepare() {
+//     c.EnableXSRF = false
+// }
 func (c *CampaignController)ChildPrepare(){
 	
 }
@@ -64,7 +65,9 @@ func (c *CampaignController) Createsite(){
 		c.ErrorJson(20211216154049,"campaign id empty",nil)
 	}
 	if(!utils.ValidEmail(email)){
-		c.ErrorJson(20211217152054,c.Tr("en-US","welcome"),nil)
+		// fmt.Println(c.Lang)
+		c.Lang=c.BaseController.Lang
+		c.ErrorJson(20211217152054,c.Tr("welcome"),nil)
 	}
 	camPaign,err:=models.DefaultCampaign.FindCambyid(campaignId)
 	if(err!=nil){

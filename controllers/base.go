@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/beego/beego/v2/server/web/context"
-	// "github.com/beego/beego/v2/core/logs"
+	"github.com/beego/beego/v2/core/logs"
 	// "reflect"
 	// "fmt"
 	"github.com/beego/i18n"
@@ -156,12 +156,15 @@ func (c *BaseController) Prepare() {
 			curLang.Name = v.Name
 		}
 	}
+	l := logs.GetLogger()
 	c.Lang = lang
+	l.Println("first time load language")
+	l.Println(lang)
     c.Data["Lang"] = curLang.Lang
     c.Data["CurLang"] = curLang.Name
     c.Data["RestLangs"] = restLangs
 
-	// 	 l := logs.GetLogger()
+
 	//      l.Println("111111")
 	// l.Println(c.Data["langTemplateKey"])
 	// c.Data["Lang"]=c.Data["langTemplateKey"]
