@@ -3,7 +3,7 @@ package main
 import (
 	beego "github.com/beego/beego/v2/server/web"
 	_ "marketing/routers"
-    // "fmt"
+    //  "fmt"
 	"github.com/beego/beego/v2/client/orm"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/beego/beego/v2/server/web/session/redis"
@@ -35,8 +35,9 @@ func init() {
 		innerFunc(dbname_err)
 	}
 	orm.RegisterDriver("mysql", orm.DRMySQL)
-
-	orm.RegisterDataBase("default", "mysql", mysql_user+":"+mysql_pass+"@tcp("+mysql_host+":"+mysql_port+")/"+mysql_dbname+"?charset=utf8&parseTime=True&loc=Local")
+	 mysqlconurl:=mysql_user+":"+mysql_pass+"@tcp("+mysql_host+":"+mysql_port+")/"+mysql_dbname+"?charset=utf8&parseTime=True&loc=Local"
+	// fmt.Println(mysqlconurl)
+	orm.RegisterDataBase("default", "mysql", mysqlconurl)
 	
 	// register model
 	orm.RunSyncdb("default", false, true)

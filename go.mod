@@ -2,7 +2,7 @@ module marketing
 
 go 1.16
 
-require github.com/beego/beego/v2 v2.0.2
+require github.com/beego/beego/v2 v2.0.3
 
 require (
 	github.com/Unknwon/goconfig v1.0.0 // indirect
