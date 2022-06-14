@@ -57,7 +57,7 @@ func (c *BaseController) ErrorJson(code int, msg string, data interface{}) {
 }
 
 func Filter_user(ctx *context.Context) {
-	s := []string{"/login", "/login/accountlogin"} //defined url that not need to valid user login
+	s := []string{"/login", "/login/accountlogin","/healthcheck"} //defined url that not need to valid user login
 	// l := logs.GetLogger()
 	// res:=ctx.Input.Session("uid")
 	// l.Println(res)

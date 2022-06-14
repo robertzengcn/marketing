@@ -36,7 +36,7 @@ func init() {
 	}
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	 mysqlconurl:=mysql_user+":"+mysql_pass+"@tcp("+mysql_host+":"+mysql_port+")/"+mysql_dbname+"?charset=utf8&parseTime=True&loc=Local"
-	// fmt.Println(mysqlconurl)
+	
 	orm.RegisterDataBase("default", "mysql", mysqlconurl)
 	
 	// register model

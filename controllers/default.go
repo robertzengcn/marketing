@@ -14,3 +14,7 @@ func (c *MainController) Get() {
 	// c.TplName = "index.tpl"
 	c.Ctx.WriteString("index")
 }
+
+func (c *MainController) Healthcheck() {
+	c.Ctx.WriteString("hello")
+}

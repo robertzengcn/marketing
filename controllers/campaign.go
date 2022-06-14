@@ -21,12 +21,12 @@ type CampaignController struct {
 func (c *CampaignController)ChildPrepare(){
 	
 }
-func (c *CampaignController)Welcome(){
-	l := logs.GetLogger()
-	c.Data["langTemplateKey"] = c.GetString("lang")
-	l.Println(c.Data["langTemplateKey"])
-	c.TplName = "welcome.tpl" 
-}
+// func (c *CampaignController)Welcome(){
+// 	l := logs.GetLogger()
+// 	c.Data["langTemplateKey"] = c.GetString("lang")
+// 	l.Println(c.Data["langTemplateKey"])
+// 	c.TplName = "welcome.tpl" 
+// }
 
 //create campaign
 func (c *CampaignController) CreateCampaign() {

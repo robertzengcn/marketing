@@ -31,11 +31,11 @@ func (c *AccountController) Validaccount() {
 		//用户名和邮箱为空
 		c.ErrorJson(20211122163020,c.Tr("email_pass_empty"),nil)
 	}
-	l := logs.GetLogger()
+	// l := logs.GetLogger()
    
-	l.Println("33333")	
-	l.Println(c.Tr("welcome"))
-	l.Println("44444")
+	// l.Println("33333")	
+	// l.Println(c.Tr("welcome"))
+	// l.Println("44444")
 	account,err:=models.Validaccount(username,pass)
 
 	if err !=nil {	
