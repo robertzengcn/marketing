@@ -3,8 +3,8 @@ package controllers
 import (
 	// beego "github.com/beego/beego/v2/server/web"
 	"marketing/models"
-	"github.com/beego/beego/v2/core/logs"
-	"marketing/utils"
+	// "github.com/beego/beego/v2/core/logs"
+	// "marketing/utils"
 	"github.com/beego/i18n"
 	// "fmt"
 )
@@ -30,8 +30,8 @@ func (c *CampaignController)ChildPrepare(){
 
 //create campaign
 func (c *CampaignController) CreateCampaign() {
-	l := logs.GetLogger()
-	l.Println("this is a message of get create campaign")
+	// l := logs.GetLogger()
+	// l.Println("this is a message of get create campaign")
 	
 	campaign_name := c.GetString("campaign_name")
 
@@ -56,30 +56,30 @@ func (c *CampaignController) ListCampaign() {
 	c.SuccessJson(campagins)
 }
 // create site api
-func (c *CampaignController) Createsite(){
-	site:= c.GetString("site")
-	email:= c.GetString("email")
+// func (c *CampaignController) Createsite(){
+// 	site:= c.GetString("site")
+// 	email:= c.GetString("email")
 	
-	campaignId,_:=c.GetInt64("campaigin_id",0)
-	if(campaignId<=0){
-		c.ErrorJson(20211216154049,"campaign id empty",nil)
-	}
-	if(!utils.ValidEmail(email)){
-		// fmt.Println(c.Lang)
-		c.Lang=c.BaseController.Lang
-		c.ErrorJson(20211217152054,c.Tr("welcome"),nil)
-	}
-	camPaign,err:=models.DefaultCampaign.FindCambyid(campaignId)
-	if(err!=nil){
-		c.ErrorJson(20211216154653,err.Error(),nil)
-	}
-	siteId,siteErr:=models.DefaultSiteObj.AddSite(&camPaign,email,site)
-	if(siteErr!=nil){
-		c.ErrorJson(20211216155058,siteErr.Error(),nil)
-	}
-	c.SuccessJson(siteId)
+// 	campaignId,_:=c.GetInt64("campaigin_id",0)
+// 	if(campaignId<=0){
+// 		c.ErrorJson(20211216154049,"campaign id empty",nil)
+// 	}
+// 	if(!utils.ValidEmail(email)){
+// 		// fmt.Println(c.Lang)
+// 		c.Lang=c.BaseController.Lang
+// 		c.ErrorJson(20211217152054,c.Tr("welcome"),nil)
+// 	}
+// 	camPaign,err:=models.DefaultCampaign.FindCambyid(campaignId)
+// 	if(err!=nil){
+// 		c.ErrorJson(20211216154653,err.Error(),nil)
+// 	}
+// 	siteId,siteErr:=models.DefaultSiteObj.AddSite(camPaign,email,site)
+// 	if(siteErr!=nil){
+// 		c.ErrorJson(20211216155058,siteErr.Error(),nil)
+// 	}
+// 	c.SuccessJson(siteId)
 
-}
+// }
 
 
 

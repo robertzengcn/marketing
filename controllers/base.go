@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/beego/beego/v2/server/web/context"
-	"github.com/beego/beego/v2/core/logs"
+	// "github.com/beego/beego/v2/core/logs"
 	// "reflect"
 	// "fmt"
 	"github.com/beego/i18n"
@@ -68,18 +68,18 @@ func Filter_user(ctx *context.Context) {
 	// l.Println(ok)
 	if !ok { //user not login
 		if !utils.Contains(s, ctx.Request.RequestURI) {
-			if ctx.Input.IsAjax() {
+			// if ctx.Input.IsAjax() {
 				jsonData := make(map[string]interface{}, 3)
 
 				jsonData["errcode"] = 403
 				jsonData["message"] = "You have to login to continue"
 
 				returnJSON, _ := json.Marshal(jsonData)
-
+				ctx.ResponseWriter.Header().Set("Content-Type", "application/json;charset=UTF-8;")
 				ctx.ResponseWriter.Write(returnJSON)
-			} else {
-				ctx.Redirect(302, "/login")
-			}
+			// } else {
+			// 	ctx.Redirect(302, "/login")
+			// }
 		}
 	}
 }
@@ -156,10 +156,10 @@ func (c *BaseController) Prepare() {
 			curLang.Name = v.Name
 		}
 	}
-	l := logs.GetLogger()
+	// l := logs.GetLogger()
 	c.Lang = lang
-	l.Println("first time load language")
-	l.Println(lang)
+	// l.Println("first time load language")
+	// l.Println(lang)
     c.Data["Lang"] = curLang.Lang
     c.Data["CurLang"] = curLang.Name
     c.Data["RestLangs"] = restLangs

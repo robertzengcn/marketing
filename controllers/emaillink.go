@@ -14,7 +14,7 @@ type EmailController struct {
 
 func (c *EmailController) Testreadsaveemail() {
 	file:=""
-	emailModel:=models.Email{}
+	emailModel:=models.EmailLink{}
 	lemail,lerr:=emailModel.ReademailFile(file)
 	if(lerr!=nil){
 		panic(lerr)

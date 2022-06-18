@@ -2,10 +2,12 @@ package models
 
 import (
 	"encoding/json"
-	"github.com/beego/beego/v2/client/orm"
+	"errors"
 	"io/ioutil"
 	"os"
 	"time"
+
+	"github.com/beego/beego/v2/client/orm"
 )
 
 var DefaultTask *Task
@@ -60,3 +62,35 @@ func (u *Task) Createtask(task Task) (int64, error) {
 	}
 	return id,err	
 }
+///update task status
+func (u *Task) Updatetaskstatus(taskId int64,taskStatusid int64)(error){
+	o := orm.NewOrm()
+	task := Task{Id: taskId}
+	taskstatusModel:=TaskStatus{}
+	taskStatusVar,statusErr:=taskstatusModel.GetOne(taskStatusid)
+	if(statusErr!=nil){
+		return errors.New("task status error")
+	}
+	terr:=o.Read(&task) 
+	if(terr== nil) {
+		task.TaskStatus=taskStatusVar
+		if _, err := o.Update(&task); err != nil {
+			return err //update failure
+		}
+	}else{
+		return terr
+	}
+	return nil
+}
+///find one task by task id
+func (u *Task)GetOne(taskId int64)(*Task,error){
+	o := orm.NewOrm()
+	task := Task{Id: taskId}
+	err := o.Read(&task)
+	if(err!=nil){
+		return nil, err	
+	}else{
+		return &task,nil
+	}
+}
+

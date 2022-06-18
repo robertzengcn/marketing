@@ -19,3 +19,15 @@ func init() {
 	// orm.RunSyncdb("default", false, true)
 }
 
+///find one task status by task status id
+func (u *TaskStatus)GetOne(statusId int64)(*TaskStatus,error){
+	o := orm.NewOrm()
+	taskstatus := TaskStatus{Id: statusId}
+	err := o.Read(&taskstatus)
+	if(err!=nil){
+		return nil, err	
+	}else{
+		return &taskstatus,nil
+	}
+}
+

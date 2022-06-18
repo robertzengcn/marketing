@@ -4,7 +4,7 @@ import (
 	// beego "github.com/beego/beego/v2/server/web"
 	"marketing/models"
 	"github.com/beego/i18n"
-	"github.com/beego/beego/v2/core/logs"
+	// "github.com/beego/beego/v2/core/logs"
 )
 type AccountResponse struct{
 	Id int64
@@ -20,8 +20,8 @@ type AccountController struct {
 //     a.EnableXSRF = false
 // }
  func (c *AccountController) ChildPrepare(){
-	l := logs.GetLogger()
-         l.Println("22222")
+	// l := logs.GetLogger()
+    //      l.Println("22222")
  }
 ///valid account
 func (c *AccountController) Validaccount() {
