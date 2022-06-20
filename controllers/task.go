@@ -15,6 +15,7 @@ type TaskController struct {
 func (c *TaskController) CreateTask() {
 	campaign_id, _ := c.GetInt64("campaign_id")
 	emailtpl_id, _ := c.GetInt64("emailtpl_id")
+	task_name:= c.GetString("task_name")
 
 	//check campaign correct
 	campaignModel := models.Campaign{CampaignId: campaign_id}
@@ -31,6 +32,7 @@ func (c *TaskController) CreateTask() {
 	taskstatusModel := models.TaskStatus{Id: 1}
 	taskModel := models.Task{}
 	taskVar := models.Task{
+		TaskName: task_name,
 		TaskStatus: &taskstatusModel,
 		EmailTpl:   emailtplVar,
 		CampaignId: campaignVar}

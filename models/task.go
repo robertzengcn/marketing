@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"time"
-
+	"github.com/beego/beego/v2/core/validation"
 	"github.com/beego/beego/v2/client/orm"
 )
 
@@ -14,9 +14,10 @@ var DefaultTask *Task
 
 type Task struct {
 	Id          int64       `orm:"pk;auto"`
+	TaskName 	string      `orm:"size(150)" valid:"Required"`
 	TaskStatus  *TaskStatus `orm:"rel(fk);on_delete(do_nothing)"`
-	EmailTpl    *EmailTpl   `orm:"rel(fk);on_delete(do_nothing)"`
-	CampaignId  *Campaign   `orm:"rel(fk);on_delete(do_nothing)"`
+	EmailTpl    *EmailTpl   `orm:"rel(fk);on_delete(do_nothing)" valid:"Required;"`
+	CampaignId  *Campaign   `orm:"rel(fk);on_delete(do_nothing)" valid:"Required;"`
 	CreatedTime time.Time   `orm:"auto_now_add;type(datetime)"`
 	UpdateTime  time.Time   `orm:"auto_now;type(datetime)"`
 }
@@ -55,6 +56,20 @@ func (u *Task) Readfile(filename string) ([]SearchRequest, error) {
 
 ///create task
 func (u *Task) Createtask(task Task) (int64, error) {
+	valid := validation.Validation{}
+	b, verr := valid.Valid(&task)
+    if verr != nil {
+        // handle error
+		return 0,verr
+    }
+    if !b {
+        // validation does not pass
+        var errMessage string
+        for _, err := range valid.Errors {
+			errMessage+=err.Key+":"+err.Message 
+        }
+		return 0,errors.New(errMessage)
+    }
 	o := orm.NewOrm()
 	id, err := o.Insert(&task)
 	if err != nil {

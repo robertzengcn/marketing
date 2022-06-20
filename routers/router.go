@@ -27,6 +27,7 @@ func init() {
 
 	beego.Router("/", &controllers.MainController{})
 	beego.Router("/campaign/create", &controllers.CampaignController{}, "post:CreateCampaign")
+	beego.Router("/task/create", &controllers.TaskController{}, "post:CreateTask")
 	beego.Router("/login/accountlogin", &controllers.AccountController{}, "post:Validaccount")
 	//list campagin
 	beego.Router("/campaign", &controllers.CampaignController{}, "get:ListCampaign")
