@@ -8,6 +8,10 @@ import (
 	"time"
 	"github.com/beego/beego/v2/core/validation"
 	"github.com/beego/beego/v2/client/orm"
+	"os/exec"
+	// "fmt"
+	"github.com/beego/beego/v2/core/logs"
+	"bufio"
 )
 
 var DefaultTask *Task
@@ -107,5 +111,43 @@ func (u *Task)GetOne(taskId int64)(*Task,error){
 	}else{
 		return &task,nil
 	}
+}
+///start a task
+func (u *Task)Starttask(taskId int64)(error){
+	cmdName := "ls"
+	cmdArgs := []string{"-al"}
+	cmd := exec.Command(cmdName, cmdArgs...)
+	cmdReader, err := cmd.StdoutPipe()
+	if err != nil {
+		// fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
+		logs.Error("Error creating StdoutPipe for Cmd")
+		logs.Error(err)
+		return err
+	}
+	scanner := bufio.NewScanner(cmdReader)
+	go func() {
+		for scanner.Scan() {
+			logs.Info("start to run task get out | %s\n", scanner.Text())
+			// fmt.Printf("docker build out | %s\n", scanner.Text())
+		}
+	}()
+	err = cmd.Start()
+	if err != nil {
+		// fmt.Fprintln(os.Stderr, "Error starting Cmd", err)
+		// os.Exit(1)
+		logs.Error("Error starting Cmd")
+		logs.Error(err)
+		return err
+	}
+
+	err = cmd.Wait()
+	if err != nil {
+		// fmt.Fprintln(os.Stderr, "Error waiting for Cmd", err)
+		// os.Exit(1)
+		logs.Error("Error waiting for Cmd")
+		logs.Error(err)
+		return err
+	}
+	return nil
 }
 

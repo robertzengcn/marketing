@@ -11,6 +11,7 @@ import (
 	"marketing/controllers"
 	"github.com/beego/beego/v2/core/config"
 	"github.com/beego/i18n"
+	"github.com/beego/beego/v2/core/logs"
 )
 
 func init() {
@@ -55,6 +56,14 @@ func main() {
 	// utils.InitTask()
 	// task.StartTask()
 	// defer task.StopTask()
+
+	f := &logs.PatternLogFormatter{
+        Pattern:    "%F:%n|%w%t>> %m",
+        WhenFormat: "2006-01-02",
+    }
+    logs.RegisterFormatter("pattern", f)
+
+    _ = logs.SetGlobalFormatter("pattern")
 	beego.AddFuncMap("i18n", i18n.Tr)
 	beego.Run()
 }
