@@ -122,7 +122,7 @@ func (u *Task)Starttask(taskId int64)(error){
 	if(gherr!=nil){
 		return gherr
 	}
-	gPort,gperr:=beego.AppConfig.String("googlescrape::host")
+	gPort,gperr:=beego.AppConfig.String("googlescrape::port")
 	if(gperr!=nil){
 		return gperr
 	}
@@ -138,10 +138,11 @@ func (u *Task)Starttask(taskId int64)(error){
 	conn, cerr := utils.Connect(gHost+":"+gPort, gUser, gPass)
 	if cerr != nil {
 		logs.Error(cerr)
+		return cerr
 	}
 		// cmdName := "GoogleScraper"
 	// cmdArgs := []string{"-h"}
-	output, err := conn.SendCommands("cat  /export/home/jiazhu3/main.go")
+	output, err := conn.SendCommands("GoogleScraper -h")
 	if err != nil {
 		logs.Error(err)
 	}

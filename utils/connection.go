@@ -4,7 +4,7 @@ import (
 	"bufio"
 	// "fmt"
 	"io"
-	"log"
+	// "log"
 	"net"
 	"strings"
 	"golang.org/x/crypto/ssh"
