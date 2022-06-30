@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"marketing/utils"
 	"os"
 	"time"
-	"github.com/beego/beego/v2/core/validation"
+
 	"github.com/beego/beego/v2/client/orm"
-	"os/exec"
-	// "fmt"
 	"github.com/beego/beego/v2/core/logs"
-	"bufio"
+	"github.com/beego/beego/v2/core/validation"
+	beego "github.com/beego/beego/v2/server/web"
 )
 
 var DefaultTask *Task
@@ -114,40 +114,39 @@ func (u *Task)GetOne(taskId int64)(*Task,error){
 }
 ///start a task
 func (u *Task)Starttask(taskId int64)(error){
-	cmdName := "ls"
-	cmdArgs := []string{"-al"}
-	cmd := exec.Command(cmdName, cmdArgs...)
-	cmdReader, err := cmd.StdoutPipe()
-	if err != nil {
-		// fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
-		logs.Error("Error creating StdoutPipe for Cmd")
-		logs.Error(err)
-		return err
+	// cmdName := "GoogleScraper"
+	// cmdArgs := []string{"-h"}
+	// rErr:=utils.Runcommand(cmdName,cmdArgs...)
+	// return rErr
+	gHost,gherr:=beego.AppConfig.String("googlescrape::host")
+	if(gherr!=nil){
+		return gherr
 	}
-	scanner := bufio.NewScanner(cmdReader)
-	go func() {
-		for scanner.Scan() {
-			logs.Info("start to run task get out | %s\n", scanner.Text())
-			// fmt.Printf("docker build out | %s\n", scanner.Text())
-		}
-	}()
-	err = cmd.Start()
-	if err != nil {
-		// fmt.Fprintln(os.Stderr, "Error starting Cmd", err)
-		// os.Exit(1)
-		logs.Error("Error starting Cmd")
-		logs.Error(err)
-		return err
+	gPort,gperr:=beego.AppConfig.String("googlescrape::host")
+	if(gperr!=nil){
+		return gperr
 	}
+	gUser,gerr:=beego.AppConfig.String("googlescrape::user")
+	if(gerr!=nil){
+		logs.Error(gerr)
+		return gerr
+	}
+	gPass,gperr:=beego.AppConfig.String("googlescrape::pass")
+	if(gperr!=nil){
+		return gperr
+	}
+	conn, cerr := utils.Connect(gHost+":"+gPort, gUser, gPass)
+	if cerr != nil {
+		logs.Error(cerr)
+	}
+		// cmdName := "GoogleScraper"
+	// cmdArgs := []string{"-h"}
+	output, err := conn.SendCommands("cat  /export/home/jiazhu3/main.go")
+	if err != nil {
+		logs.Error(err)
+	}
+	logs.Info(output)
 
-	err = cmd.Wait()
-	if err != nil {
-		// fmt.Fprintln(os.Stderr, "Error waiting for Cmd", err)
-		// os.Exit(1)
-		logs.Error("Error waiting for Cmd")
-		logs.Error(err)
-		return err
-	}
 	return nil
 }
 

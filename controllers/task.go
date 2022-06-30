@@ -66,6 +66,7 @@ func (c *TaskController) UpdateTaskstatus() {
 	if terr != nil {
 		c.ErrorJson(20220617155052, terr.Error(), nil)
 	}
+	go TaskModel.Starttask(task_id)
 	
 	c.SuccessJson(nil)
 }
