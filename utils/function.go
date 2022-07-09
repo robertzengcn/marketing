@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"github.com/beego/beego/v2/core/logs"
 	"bufio"
+	"crypto/md5"
+	"fmt"
 )
 
 func Init(){
@@ -79,4 +81,15 @@ func Runcommand(cmdName string,cmdArgs ...string)error{
 		return err
 	}
 	return nil
+}
+func Md5V2(str string) string {
+	data := []byte(str)
+	has := md5.Sum(data)
+	md5str := fmt.Sprintf("%x", has)
+	return md5str
+}
+//handle error
+func Handleerror(errors error)(error){
+	logs.Error(errors)
+	return errors
 }

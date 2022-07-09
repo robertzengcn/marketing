@@ -4,6 +4,7 @@ import (
 	// beego "github.com/beego/beego/v2/server/web"
 	"github.com/beego/i18n"
 	"marketing/models"
+	
 )
 
 type TaskController struct {
@@ -50,7 +51,7 @@ func (c *TaskController) CreateTask() {
 	if(terr!=nil){
 		c.ErrorJson(20220621100351,"task not exist",nil)
 	}
-	taskdetailVar:=models.TaskDetail{TaskId:taskEntity,Taskkeyword:taskkeyword }
+	taskdetailVar:=models.TaskDetail{Task:taskEntity,Taskkeyword:taskkeyword }
 	taskdetailModel:=models.TaskDetail{}
 	taskdetailModel.Savetaskdetail(taskdetailVar)
 	c.SuccessJson(taskid)
@@ -62,11 +63,13 @@ func (c *TaskController) UpdateTaskstatus() {
 	task_id, _ := c.GetInt64("task_id")
 	TaskModel := models.Task{}
 
+	go TaskModel.Starttask(task_id)
+	
 	terr := TaskModel.Updatetaskstatus(task_id, status_id)
 	if terr != nil {
 		c.ErrorJson(20220617155052, terr.Error(), nil)
 	}
-	go TaskModel.Starttask(task_id)
+	
 	
 	c.SuccessJson(nil)
 }

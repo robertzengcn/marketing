@@ -9,7 +9,7 @@ type TaskStatus struct {
 }
 
 func (u *TaskStatus) TableName() string {
-	return "taskstatus"
+	return "task_status"
 }
 
 func init() {

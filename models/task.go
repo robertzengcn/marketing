@@ -7,11 +7,12 @@ import (
 	"marketing/utils"
 	"os"
 	"time"
-
+	// "strconv"
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
 	"github.com/beego/beego/v2/core/validation"
 	beego "github.com/beego/beego/v2/server/web"
+	"fmt"
 )
 
 var DefaultTask *Task
@@ -41,7 +42,11 @@ func init() {
 	// create table
 	// orm.RunSyncdb("default", false, true)
 }
-
+type Result struct {
+	Runid 		int64
+    Output          string
+    Err error
+}
 ///read search request json file and convert to json array
 func (u *Task) Readfile(filename string) ([]SearchRequest, error) {
 	jsonFile, err := os.Open(filename)
@@ -113,41 +118,118 @@ func (u *Task)GetOne(taskId int64)(*Task,error){
 	}
 }
 ///start a task
-func (u *Task)Starttask(taskId int64)(error){
-	// cmdName := "GoogleScraper"
-	// cmdArgs := []string{"-h"}
-	// rErr:=utils.Runcommand(cmdName,cmdArgs...)
-	// return rErr
+func (u *Task)Starttask(taskId int64){
+	taskrunModel:=TaskRun{}
+	runid,runErr:=taskrunModel.CreateRun(taskId)
+	if(runErr!=nil){
+		logs.Error(runErr)
+		return 
+	}
+	
+	TaskdetailModel:=TaskDetail{}
+	taskdetailVar,terr:=TaskdetailModel.Gettaskdetail(taskId)
+	if(terr!=nil){		
+		u.Handletaskerror(&Result{Runid: runid,Output: "",Err:terr})
+		return
+	}
+	if(len(taskdetailVar.Taskkeyword)<=0){
+		// return errors.New("keyword empty")
+		
+		u.Handletaskerror(&Result{Runid: runid,Output: "",Err:errors.New("keyword empty")})
+	}
+
 	gHost,gherr:=beego.AppConfig.String("googlescrape::host")
 	if(gherr!=nil){
-		return gherr
+		u.Handletaskerror(&Result{Runid: runid,Output: "",Err:gherr})
+		return
 	}
 	gPort,gperr:=beego.AppConfig.String("googlescrape::port")
 	if(gperr!=nil){
-		return gperr
+		u.Handletaskerror(&Result{Runid: runid,Output: "",Err:gperr})
+		return
 	}
 	gUser,gerr:=beego.AppConfig.String("googlescrape::user")
 	if(gerr!=nil){
-		logs.Error(gerr)
-		return gerr
+		// logs.Error(gerr)
+		u.Handletaskerror(&Result{Runid: runid,Output: "",Err:gerr})
+		return
 	}
 	gPass,gperr:=beego.AppConfig.String("googlescrape::pass")
 	if(gperr!=nil){
-		return gperr
+		u.Handletaskerror(&Result{Runid: runid,Output: "",Err:gperr})
+		return
 	}
 	conn, cerr := utils.Connect(gHost+":"+gPort, gUser, gPass)
 	if cerr != nil {
-		logs.Error(cerr)
-		return cerr
+		// logs.Error(cerr)
+		u.Handletaskerror(&Result{Runid: runid,Output: "",Err:cerr})
+		return
 	}
-		// cmdName := "GoogleScraper"
-	// cmdArgs := []string{"-h"}
-	output, err := conn.SendCommands("GoogleScraper -h")
-	if err != nil {
-		logs.Error(err)
-	}
-	logs.Info(output)
+	out := make(chan []byte)
+    // errs := make(chan error)
 
+	//create file over ssh
+	// filename:=strconv.FormatInt(taskdetailVar.Id,10)
+	keywordfile:="/app/GoogleScraper/"+taskdetailVar.TaskFilename+".txt"
+	createfileCmd:="echo "+taskdetailVar.Taskkeyword+" > "+keywordfile
+		
+	// cmdArgs := []string{"-h"}
+	logs.Info(createfileCmd)
+	output, err := conn.SendCommands(createfileCmd)
+	u.Handletaskerror(&Result{Runid: runid,Output: string(output),Err:err})
+	if err != nil {
+		logs.Error(err)	
+		return
+	}
+	
+	// out <-output
+	// close(out)
+	outputFile:="/app/GoogleScraper/"+taskdetailVar.TaskFilename+"-output.json"
+	logs.Info(outputFile)
+	keywordCom:="GoogleScraper -m selenium --sel-browser chrome --browser-mode headless --keyword-file "+keywordfile+" --num-workers 5 --output-filename "+outputFile+" -v debug"
+
+	logs.Info(keywordCom)
+	kout,kerr:=conn.SendCommands(keywordCom)
+	logs.Info(string(kout))
+	// out<-kout
+	if(kerr!=nil){
+		logs.Error(kerr)
+		u.Handletaskerror(&Result{Runid: runid,Output: string(<-out),Err:kerr})
+		return 
+	}
+	
+}
+
+///handle error during run task
+func (u *Task)Handletaskerror(res *Result)(error){
+	taskRunM:=TaskRun{}
+	taskRunVar,rErr:=taskRunM.GetOne(res.Runid)	
+	if(rErr!=nil){
+		return rErr
+	}
+	// f, err := os.Create("/go_workspace/src/log/"+taskRunvar.Logid+".log.txt")
+	// if(err!=nil){
+	// 	return err
+	// }
+	// n3, err := f.WriteString(res.Output)
+	// if(err!=nil){
+	// 	return err
+	// }
+	logs.EnableFuncCallDepth(true)
+	// logs.SetLogger(logs.AdapterMultiFile, `{"filename":"file.log","separate":["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"]}`)
+	// logs.SetLogger(logs.AdapterFile,`{"filename":"project.log","level":7,"maxlines":0,"maxsize":0,"daily":true,"maxdays":10,"color":true}`)
+	// logs.SetLogger(logs.AdapterMultiFile, `{"filename":"test.log","separate":["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"]}`)
+	fileName:=taskRunVar.Logid+".log"
+	path:="/go_workspace/src"
+	logs.SetLogger(logs.AdapterFile, fmt.Sprintf(
+		`{"filename":"%s/log/%s", "daily":true,"rotate":true}`, path, fileName))
+	if(res.Err!=nil){
+		logs.Error(res.Err)
+	}
+	logs.Info(res.Output)
+	
+	// f.Sync()
 	return nil
 }
+
 
