@@ -7,8 +7,10 @@ import (
 	// "log"
 	"net"
 	"strings"
-	"golang.org/x/crypto/ssh"
 	"github.com/beego/beego/v2/core/logs"
+	"github.com/pkg/sftp"
+	"golang.org/x/crypto/ssh"
+	"os"
 )
 
 type Connection struct {
@@ -105,4 +107,42 @@ func (conn *Connection) SendCommands(cmds ...string) ([]byte, error) {
 
 	return output, nil
 
+}
+///create sfpt client 
+func(conn *Connection)Createsfptclient()(*sftp.Client,error){
+	sftpClient,serr:=sftp.NewClient(conn.Client)
+	if(serr!=nil){
+		return nil,serr
+	}
+	return sftpClient,nil
+}
+///download file from sftp
+func(conn *Connection)Downloadfile(sc *sftp.Client, remoteFile, localFile string)(err error){
+	srcFile, err := sc.OpenFile(remoteFile, (os.O_RDONLY))
+
+	if err != nil {
+		logs.Error("Unable to open remote file: %v\n", err)
+        // fmt.Fprintf(os.Stderr, "Unable to open remote file: %v\n", err)
+        logs.Error(err)
+		return err
+    }
+	defer srcFile.Close()
+	dstFile, err := os.Create(localFile)
+   
+	if err != nil {
+		logs.Error("Unable to open local file: %v\n", err)
+        // fmt.Fprintf(os.Stderr, "Unable to open local file: %v\n", err)
+        logs.Error(err)
+		return err
+    }
+	defer dstFile.Close()
+    bytes, err := io.Copy(dstFile, srcFile)
+    if err != nil {
+		logs.Error(err)
+        // fmt.Fprintf(os.Stderr, "Unable to download remote file: %v\n", err)
+        return err
+    }
+    // fmt.Fprintf(os.Stdout, "%d bytes copied\n", bytes)
+    logs.Info("%d bytes copied\n", bytes)
+	return nil
 }

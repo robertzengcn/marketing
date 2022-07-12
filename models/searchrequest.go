@@ -15,7 +15,7 @@ func (u *SearchRequest) TableName() string {
 	return "searchrequest"
 }
 
-// 设置引擎为 INNODB
+// set enginer as INNODB
 func (u *SearchRequest) TableEngine() string {
 	return "INNODB"
 }
