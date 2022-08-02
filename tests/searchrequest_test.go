@@ -28,7 +28,7 @@ func TestSavereuest(t *testing.T) {
 		panic(rerr.Error())	
 	}
 	searchreqModel:=models.SearchRequest{}
-	serr:=searchreqModel.Savesrlist(res)
+	serr:=searchreqModel.Savesrlist(res,1)
 	if(serr!=nil){
 		fmt.Println(serr)
 	}

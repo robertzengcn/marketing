@@ -9,6 +9,7 @@ type SearchRequest struct {
 	Id      int64      `json:"-" orm:"pk;auto"`
 	Query   string     `json:"query" orm:"size(100)"`
 	Results *[]SerpLink `json:"results" orm:"-"`
+	Taskrunid int64 `json:"-" orm:"column(task_run_id)"`
 }
 
 func (u *SearchRequest) TableName() string {
@@ -28,13 +29,14 @@ func init() {
 }
 
 ///save search resuest list to db
-func (u *SearchRequest) Savesrlist(secreq []SearchRequest) error {
+func (u *SearchRequest) Savesrlist(secreq []SearchRequest,taskrunId int64) error {
 	// o := orm.NewOrm()
 		
 	for _, item := range secreq {
 		var searchreq SearchRequest
 		searchreq.Query = item.Query
 		searchreq.Results = item.Results
+		searchreq.Taskrunid=taskrunId
 		_, serr:=searchreq.SavedataDb(&searchreq)
 		if(serr!=nil){
 			fmt.Println(serr)
@@ -76,4 +78,14 @@ func(u *SearchRequest)SavedataDb(searchreq *SearchRequest)(int64,error){
 	}
 	return sid,nil
 
+}
+///get request by run id
+func(u *SearchRequest)Getrequestrunid(taskrunid int64)(*SearchRequest,error){
+	o := orm.NewOrm()
+	searchreq := SearchRequest{}
+	err :=o.QueryTable(&searchreq).Filter("task_run_id", taskrunid).One(&searchreq)
+	if(err!=nil){
+		return nil, err
+	}
+	return &searchreq,nil
 }

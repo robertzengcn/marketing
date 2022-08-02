@@ -8,6 +8,8 @@ import (
 	"bufio"
 	"crypto/md5"
 	"fmt"
+	"os"
+	"io/ioutil"
 )
 
 func Init(){
@@ -92,4 +94,15 @@ func Md5V2(str string) string {
 func Handleerror(errors error)(error){
 	logs.Error(errors)
 	return errors
+}
+///io read file return file content
+func ReadFile(filename string)([]byte,error){
+	jsonFile, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer jsonFile.Close()
+	// read our opened xmlFile as a byte array.
+	return ioutil.ReadAll(jsonFile)
+
 }

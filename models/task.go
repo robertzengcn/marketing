@@ -3,9 +3,9 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	// "io/ioutil"
 	"marketing/utils"
-	"os"
+	// "os"
 	"time"
 	// "strconv"
 	"fmt"
@@ -53,14 +53,14 @@ type Result struct {
 
 ///read search request json file and convert to json array
 func (u *Task) Readfile(filename string) ([]SearchRequest, error) {
-	jsonFile, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer jsonFile.Close()
-	// read our opened xmlFile as a byte array.
-	byteValue, _ := ioutil.ReadAll(jsonFile)
-
+	// jsonFile, err := os.Open(filename)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer jsonFile.Close()
+	// // read our opened xmlFile as a byte array.
+	// byteValue, _ := ioutil.ReadAll(jsonFile)
+	byteValue, _ :=utils.ReadFile(filename)
 	// we initialize our Users array
 	var serequestarr []SearchRequest
 	json.Unmarshal(byteValue, &serequestarr)
@@ -194,7 +194,7 @@ func (u *Task) Starttask(taskId int64) {
 	outputFilename := taskdetailVar.TaskFilename + "-output.json"
 	outputFile := "/app/GoogleScraper/" + outputFilename
 	logs.Info(outputFile)
-	nunPage := "10"
+	nunPage := "5"
 	keywordCom := "GoogleScraper -m selenium --sel-browser chrome --browser-mode headless --keyword-file " + keywordfile + " --num-workers 10 --output-filename " + outputFile + " --num-pages-for-keyword " + nunPage + " -v debug"
 
 	logs.Info(keywordCom)
@@ -235,12 +235,15 @@ func (u *Task) Starttask(taskId int64) {
 
 	logs.Info(serequestarr)
 	searchreqModel := SearchRequest{}
-	serr := searchreqModel.Savesrlist(serequestarr)
+	serr := searchreqModel.Savesrlist(serequestarr,runid)
 	if serr != nil {
 		logs.Error(rerr)
 		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: serr})
 		return
 	}
+	fetchModel:=FetchEmail{}
+	fErr:=fetchModel.Fetchtaskemail(runid)	
+	logs.Error(fErr)
 }
 
 ///handle error during run task
@@ -263,9 +266,11 @@ func (u *Task) Handletaskerror(res *Result) error {
 	// logs.SetLogger(logs.AdapterFile,`{"filename":"project.log","level":7,"maxlines":0,"maxsize":0,"daily":true,"maxdays":10,"color":true}`)
 	// logs.SetLogger(logs.AdapterMultiFile, `{"filename":"test.log","separate":["emergency", "alert", "critical", "error", "warning", "notice", "info", "debug"]}`)
 	fileName := taskRunVar.Logid + ".log"
-	path := "/go_workspace/src"
+	// path := "/go_workspace/src"
+	_, file, _, _ := runtime.Caller(0)
+	apppath, _ := filepath.Abs(filepath.Dir(filepath.Join(file, ".."+string(filepath.Separator))))
 	logs.SetLogger(logs.AdapterFile, fmt.Sprintf(
-		`{"filename":"%s/log/%s", "daily":true,"rotate":true}`, path, fileName))
+		`{"filename":"%s/log/%s", "daily":true,"rotate":true}`, apppath, fileName))
 	if res.Err != nil {
 		logs.Error(res.Err)
 	}
