@@ -7,7 +7,7 @@ import(
 	"runtime"
 	"encoding/json"
 	"github.com/beego/beego/v2/client/orm"
-	"errors"
+	// "errors"
 )
 
 type FetchEmail struct {
@@ -83,14 +83,18 @@ func (u *FetchEmail)Sendquerycom(url string,runid int64)(error){
 		// taskModel.Handletaskerror(&Result{Runid: runid, Output: "", Err: cerr})
 		return cerr 
 	}
-	fetCommand:="Emailscrapy -u "+url+" -o "+url+".json"
+	savefilemd:=utils.Md5V2("/app/workspace/"+url)
+	savefile:=savefilemd+".json"
+	fetCommand:="Emailscrapy -u "+url+" -o "+savefile
+	logs.Info(fetCommand)
 	kout, kerr := conn.SendCommands(fetCommand)
+	logs.Info(kout)
 	if kerr != nil {
 		logs.Error(kerr)
 		// taskModel.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: kerr})
 		return kerr
 	}
-	logs.Info(kout)
+	// logs.Info(kout)
 	sftpClient, sftperr := conn.Createsfptclient()
 	if sftperr != nil {
 		logs.Error(sftperr)		
@@ -98,15 +102,14 @@ func (u *FetchEmail)Sendquerycom(url string,runid int64)(error){
 	}
 	_, file, _, _ := runtime.Caller(0)
 	apppath, _ := filepath.Abs(filepath.Dir(filepath.Join(file, ".."+string(filepath.Separator))))
-	localFilepath := apppath + "/output/"+url+".json"
-	findfile:="/app/workspace/"+url+".json"
-	derr := conn.Downloadfile(sftpClient, findfile, localFilepath)
+	localFilepath := apppath + "/output/"+savefilemd+".json"
+	// findfile:="/app/workspace/"+url+".json"
+	derr := conn.Downloadfile(sftpClient, savefile, localFilepath)
 	if derr != nil {
 		logs.Error(derr)
 		// u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: derr})
 		return derr
 	}
-
 	// serequestarr, rerr := u.Readfile(localFilepath)
 	// if rerr != nil {
 	// 	logs.Error(rerr)
@@ -116,6 +119,7 @@ func (u *FetchEmail)Sendquerycom(url string,runid int64)(error){
 	byteValue, _ :=utils.ReadFile(localFilepath)
 	var fetcharr []FetchEmail
 	json.Unmarshal(byteValue, &fetcharr)
+	logs.Info(fetcharr)
 	for _,x:= range fetcharr {
 		x.RunId=runid
 		go u.SaveEmail(x)
@@ -125,14 +129,27 @@ func (u *FetchEmail)Sendquerycom(url string,runid int64)(error){
 ///save email to local
 func (u *FetchEmail)SaveEmail(fetchemail FetchEmail)(int64,error){
 	o := orm.NewOrm()
-	fetchObj := FetchEmail{Email: fetchemail.Email,RunId:fetchemail.RunId}
-	if created, id, err := o.ReadOrCreate(&fetchObj, "email","taskrunid"); err == nil {
-		if created {
-			return id,err
-		} else {
-			return id,err
+	// fetchObj := FetchEmail{Email: fetchemail.Email,RunId:fetchemail.RunId}
+	logs.Info(fetchemail)
+	fetchemailM:=FetchEmail{}
+	qs := o.QueryTable(u)
+	err :=qs.Filter("email",fetchemail.Email).Filter("taskrunid", fetchemail.RunId).One(&fetchemailM)
+	logs.Error(err)
+	if(err == orm.ErrNoRows){
+		id, aerr := o.Insert(&fetchemail)
+		if(aerr!=nil){
+			return 0,aerr
 		}
+		return id, nil
 	}
-	return 0,errors.New("not found")
+	return 0,nil
+	// if created, id, err := o.ReadOrCreate(&fetchObj, "email","taskrunid"); err == nil {
+	// 	if created {
+	// 		return id,err
+	// 	} else {
+	// 		return id,err
+	// 	}
+	// }
+	// return 0,errors.New("not found")
 }
 

@@ -241,6 +241,7 @@ func (u *Task) Starttask(taskId int64) {
 		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: serr})
 		return
 	}
+	logs.Info("start fetch email")
 	fetchModel:=FetchEmail{}
 	fErr:=fetchModel.Fetchtaskemail(runid)	
 	logs.Error(fErr)

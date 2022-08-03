@@ -136,13 +136,13 @@ func(conn *Connection)Downloadfile(sc *sftp.Client, remoteFile, localFile string
 		return err
     }
 	defer dstFile.Close()
-    bytes, err := io.Copy(dstFile, srcFile)
+    _, err = io.Copy(dstFile, srcFile)
     if err != nil {
 		logs.Error(err)
         // fmt.Fprintf(os.Stderr, "Unable to download remote file: %v\n", err)
         return err
     }
     // fmt.Fprintf(os.Stdout, "%d bytes copied\n", bytes)
-    logs.Info("%d bytes copied\n", bytes)
+    // logs.Info("%d bytes copied\n", bytes)
 	return nil
 }
