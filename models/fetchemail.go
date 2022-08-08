@@ -7,7 +7,9 @@ import(
 	"runtime"
 	"encoding/json"
 	"github.com/beego/beego/v2/client/orm"
+	"time"
 	// "errors"
+	"sync"
 )
 
 type FetchEmail struct {
@@ -16,6 +18,7 @@ type FetchEmail struct {
 	Email string `orm:"size(150)" json:"email"`
 	Description string `orm:"size(300)" json:"description"`
 	RunId int64 `orm:"column(taskrunid)"`
+	Created time.Time `orm:"auto_now_add;type(datetime)"`
 }
 func (u *FetchEmail) TableName() string {
 	return "fetchemail"
@@ -42,20 +45,31 @@ func (u *FetchEmail)Fetchtaskemail(taskrunid int64)(error){
 		return serpLerr
 	}
 	blacklistVar:=Blacklist{}
+	var wg sync.WaitGroup
 	for _, s := range serpList {
+		topDomain,derror:=utils.Gettopdomain(s.Domain)
+		if(derror!=nil){
+		logs.Error(derror)
+			continue
+		}
 		//check is the item in blacklist
-		bres,_:=blacklistVar.Getone(s.Domain)
+		bres,_:=blacklistVar.Getone(topDomain)
 		if(bres!=nil){//item in black list
 			continue
 		}
-		go u.Sendquerycom(s.Link,taskrunid)
+		// Increment the WaitGroup counter.
+		wg.Add(1)
+		go u.Sendquerycom(s.Link,taskrunid,wg)
 
 	}
+	wg.Wait()
+	// logs.Info("fetch email complete")
 	return nil
 }
 ///send query email command
-func (u *FetchEmail)Sendquerycom(url string,runid int64)(error){
-	
+func (u *FetchEmail)Sendquerycom(url string,runid int64,wg sync.WaitGroup)(error){
+	// Decrement the counter when the goroutine completes.
+	defer wg.Done()
 	gHost, gherr := beego.AppConfig.String("emailscrape::host")
 	if gherr != nil {
 		// taskModel.Handletaskerror(&Result{Runid: runid, Output: "", Err: gherr})
@@ -88,7 +102,7 @@ func (u *FetchEmail)Sendquerycom(url string,runid int64)(error){
 	fetCommand:="Emailscrapy -u "+url+" -o "+savefile
 	logs.Info(fetCommand)
 	kout, kerr := conn.SendCommands(fetCommand)
-	logs.Info(kout)
+	logs.Info(string(kout))
 	if kerr != nil {
 		logs.Error(kerr)
 		// taskModel.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: kerr})

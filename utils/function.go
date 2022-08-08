@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"os"
 	"io/ioutil"
+	"net/url"
+	"strings"
 )
 
 func Init(){
@@ -106,4 +108,12 @@ func ReadFile(filename string)([]byte,error){
 	return ioutil.ReadAll(jsonFile)
 
 }
-
+///get top domain from url
+func Gettopdomain(urls string)(string, error){
+	url, err := url.Parse(urls)
+    if err != nil {
+        return "",err
+    }
+    hostname := strings.TrimPrefix(url.Hostname(), "www.")
+	return hostname,nil
+}

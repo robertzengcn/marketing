@@ -178,7 +178,7 @@ func (u *Task) Starttask(taskId int64) {
 	//create file over ssh
 	// filename:=strconv.FormatInt(taskdetailVar.Id,10)
 	keywordfile := "/app/GoogleScraper/" + taskdetailVar.TaskFilename + ".txt"
-	createfileCmd := "echo " + taskdetailVar.Taskkeyword + " > " + keywordfile
+	createfileCmd := "echo $'" + taskdetailVar.Taskkeyword + "' > " + keywordfile
 
 	// cmdArgs := []string{"-h"}
 	logs.Info(createfileCmd)
@@ -194,8 +194,9 @@ func (u *Task) Starttask(taskId int64) {
 	outputFilename := taskdetailVar.TaskFilename + "-output.json"
 	outputFile := "/app/GoogleScraper/" + outputFilename
 	logs.Info(outputFile)
-	nunPage := "5"
-	keywordCom := "GoogleScraper -m selenium --sel-browser chrome --browser-mode headless --keyword-file " + keywordfile + " --num-workers 10 --output-filename " + outputFile + " --num-pages-for-keyword " + nunPage + " -v debug"
+	nunPage := "10"
+	workNum:="2"
+	keywordCom := "GoogleScraper -m selenium --sel-browser chrome --browser-mode headless --keyword-file " + keywordfile + " --num-workers "+workNum+" --output-filename " + outputFile + " --num-pages-for-keyword " + nunPage + " -v debug"
 
 	logs.Info(keywordCom)
 	kout, kerr := conn.SendCommands(keywordCom)
@@ -279,4 +280,8 @@ func (u *Task) Handletaskerror(res *Result) error {
 
 	// f.Sync()
 	return nil
+}
+///send email for taskrun id
+func (u *Task)Sendemail(tastrunId int64){
+
 }
