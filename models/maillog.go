@@ -28,7 +28,16 @@ orm.RegisterModelWithPrefix("mk_", new(MailLog))
 func (u *MailLog)Getemailcam(email string,campaignId int64)(int64,error){
 	o := orm.NewOrm()
 	mailModel:=MailLog{}
-	qs = o.QueryTable(&mailModel)
-	
-
+	qs := o.QueryTable(&mailModel)
+	return qs.Filter("mail_receiver", email).Filter("campaign_id", "campaignId").Count()	
 }
+///add mail log
+func (u *MailLog)Addmaillog(maillog MailLog)(int64,error){
+	o := orm.NewOrm()
+	id, err := o.Insert(&maillog)
+	if err==nil{
+		return 0,err
+	}
+	return id,err
+}
+

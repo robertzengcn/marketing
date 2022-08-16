@@ -33,7 +33,8 @@ func init() {
 	//list campagin
 	beego.Router("/campaign", &controllers.CampaignController{}, "get:ListCampaign")
 	// beego.Router("/addSite", &controllers.CampaignController{}, "post:Createsite")
-	beego.Router("/createemailtpl", &controllers.EmailtplController{}, "post:CreateEmailtpl")
+	beego.Router("/emailtpl/create", &controllers.EmailtplController{}, "post:CreateEmailtpl")
+	beego.Router("/emailservice/add", &controllers.EmailserviceController{}, "post:Addemailservice")
 	// beego.Router("/welcome", &controllers.CampaignController{}, "get:Welcome")
 	beego.Router("/healthcheck", &controllers.MainController{}, "get:Healthcheck")
 	ns := beego.NewNamespace("/test",

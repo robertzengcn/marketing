@@ -14,10 +14,10 @@ type EmailTpl struct {
 	TplId      int64     `orm:"pk;auto"`
 	TplTitle string  `orm:"size(250)" valid:"Required"`
 	TplContent string `orm:"type(text)" valid:"Required"`
-	CampaignId *Campaign `orm:"rel(fk);on_delete(do_nothing)"`
+	CampaignId *Campaign `orm:"rel(fk);on_delete(do_nothing);column(campaign_id)"`
 	TplRecord time.Time `orm:"auto_now;type(datetime)"`
 	UpdateTime time.Time `orm:"auto_now;type(datetime)"`
-	
+	Status int `orm:"size(1);default(1);description(this mean status of the email tpl)"`
 }
 func (u *EmailTpl) TableName() string {
 	return "email_tpl"
@@ -63,6 +63,14 @@ func (u *EmailTpl)Createone(emailtpl EmailTpl)(int64,error){
 		return 0,err
 	}
 	return id,err
+}
+///get all email tpl by campaign
+func (u *EmailTpl)Getalltpl(campaignId int64)([]*EmailTpl,error){
+	var emps []*EmailTpl
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+	qs.Filter("campaign_id", campaignId).Filter("status",1).All(&emps)
+	return emps,nil
 }
 
 

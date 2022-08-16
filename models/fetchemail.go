@@ -59,7 +59,7 @@ func (u *FetchEmail)Fetchtaskemail(taskrunid int64)(error){
 		}
 		// Increment the WaitGroup counter.
 		wg.Add(1)
-		go u.Sendquerycom(s.Link,taskrunid,wg)
+		go u.Sendquerycom(s.Link,taskrunid,&wg)
 
 	}
 	wg.Wait()
@@ -67,7 +67,7 @@ func (u *FetchEmail)Fetchtaskemail(taskrunid int64)(error){
 	return nil
 }
 ///send query email command
-func (u *FetchEmail)Sendquerycom(url string,runid int64,wg sync.WaitGroup)(error){
+func (u *FetchEmail)Sendquerycom(url string,runid int64,wg *sync.WaitGroup)(error){
 	// Decrement the counter when the goroutine completes.
 	defer wg.Done()
 	gHost, gherr := beego.AppConfig.String("emailscrape::host")
@@ -166,4 +166,11 @@ func (u *FetchEmail)SaveEmail(fetchemail FetchEmail)(int64,error){
 	// }
 	// return 0,errors.New("not found")
 }
-
+///get all email by task run id
+func (u *FetchEmail)Fetchallemail(taskrunid int64)([]*FetchEmail,int64,error){
+	o := orm.NewOrm()
+	var fetmails []*FetchEmail
+	qs := o.QueryTable(u)
+	num, err :=qs.Filter("taskrunid", taskrunid).All(&fetmails)
+	return fetmails,num,err
+}

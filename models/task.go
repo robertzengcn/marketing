@@ -15,6 +15,7 @@ import (
 	beego "github.com/beego/beego/v2/server/web"
 	"path/filepath"
 	"runtime"
+	"math/rand"
 )
 
 var DefaultTask *Task
@@ -244,8 +245,14 @@ func (u *Task) Starttask(taskId int64) {
 	}
 	logs.Info("start fetch email")
 	fetchModel:=FetchEmail{}
-	fErr:=fetchModel.Fetchtaskemail(runid)	
-	logs.Error(fErr)
+	fErr:=fetchModel.Fetchtaskemail(runid)
+	if(fErr!=nil){
+		logs.Error(fErr)
+	}	
+	logs.Info("start send email")
+	u.Sendemail(runid)
+
+	
 }
 
 ///handle error during run task
@@ -282,6 +289,62 @@ func (u *Task) Handletaskerror(res *Result) error {
 	return nil
 }
 ///send email for taskrun id
-func (u *Task)Sendemail(tastrunId int64){
+func (u *Task)Sendemail(tastrunId int64)(error){
+	//get CampaignId
+	taskrunModel:=TaskRun{}
+	taskrun,terr:=taskrunModel.GetOne(tastrunId)
+	if(terr!=nil){
+		return terr
+	}
+	taskModel:=Task{}
+	task,taerr:=taskModel.GetOne(taskrun.Task.Id)
+	if(taerr!=nil){
+		return taerr
+	}
+	//get all email Email tpl
+	emailtplModel:=EmailTpl{}
+	emArr,emErr:=emailtplModel.Getalltpl(task.CampaignId.CampaignId)
+	if(emErr!=nil){
+		return emErr
+	}
+	//get all email by task run id
+	fetModel:=FetchEmail{}
+	femailslice,fnum,ferr:=fetModel.Fetchallemail(tastrunId)
+	if(ferr!=nil){
+		return ferr
+	}
+	if(fnum==0){
+		return errors.New("not find email with task run id")
+	}
+	mailModel:=MailLog{}
+	emailser:=EmailService{}
+	for _,v:=range femailslice {
+		logNum,_:=mailModel.Getemailcam(v.Email,task.CampaignId.CampaignId)
+		if(logNum>0){//mail already exist in log
+			continue
+		}
+		//getmail account for send email
+		seremail,sererr:=emailser.GetEsbycam(task.CampaignId.CampaignId)
+		if(sererr!=nil){
+			return sererr
+		}
+		//get random email tpl
+		rand.Seed(time.Now().Unix()) 
+		chooseEm:=emArr[rand.Intn(len(emArr))]
+		toMail:= make([]string, 3)
+		toMail[0]=v.Email
+		serErr:=emailser.Sendemail(seremail,toMail,chooseEm.TplTitle,chooseEm.TplContent)
+		if(serErr!=nil){
+			return serErr
+		}
+		maillogModel:=MailLog{Campaign: task.CampaignId,
+			Subject:chooseEm.TplTitle,
+			Content: chooseEm.TplContent,
+			Receiver: toMail[0],
+			TaskrunId: taskrun,
+		 }
+		 maillogModel.Addmaillog(maillogModel)
 
+	}
+	return nil	
 }
