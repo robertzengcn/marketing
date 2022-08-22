@@ -92,9 +92,9 @@ func (c *EmailserviceController) Testsendemail(){
 		c.ErrorJson(20220816101672,emailerr.Error(),nil)		
 	}
 	var toList []string
-	toList[0]=toemail
+	toList = append(toList, toemail)
 
-	sendErr:=emailModel.Sendemail(emailSer,toList,title,content)
+	sendErr:=emailModel.Sendemailtsl(emailSer,toList,title,content)
 	if(sendErr!=nil){
 		c.ErrorJson(20220816103399,sendErr.Error(),nil)		
 	}

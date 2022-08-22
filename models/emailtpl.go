@@ -3,11 +3,12 @@ package models
 import (
 	"errors"
 	"time"
-
+	"net/url"
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
 	"github.com/beego/beego/v2/core/validation"
 	_ "github.com/go-sql-driver/mysql"
+	"strings"
 )
 var DefaultEmailTpl *EmailTpl
 type EmailTpl struct {
@@ -72,6 +73,24 @@ func (u *EmailTpl)Getalltpl(campaignId int64)([]*EmailTpl,error){
 	qs.Filter("campaign_id", campaignId).Filter("status",1).All(&emps)
 	return emps,nil
 }
+///replace email content
+func (u *EmailTpl)Replacevar(et *EmailTpl, femail *FetchEmail)(*EmailTpl,error){
+	url, err := url.Parse(femail.Url)
+	if err != nil {
+        return nil,err
+    }
+	now := time.Now()
+	hostname := strings.TrimPrefix(url.Hostname(), "www.")
+	et.TplTitle=strings.Replace(et.TplTitle,"{$host}",hostname,-1)
+	et.TplTitle=strings.Replace(et.TplTitle,"{$receiver_email}",femail.Email,-1)
+	et.TplTitle=strings.Replace(et.TplTitle,"{$send_time}",now.Format(time.ANSIC),-1)
+
+	et.TplContent=strings.Replace(et.TplContent,"{$host}",hostname,-1)
+	et.TplContent=strings.Replace(et.TplContent,"{$receiver_email}",femail.Email,-1)
+	et.TplContent=strings.Replace(et.TplContent,"{$send_time}",now.Format(time.ANSIC),-1)
+	return et,nil
+}
+
 
 
 

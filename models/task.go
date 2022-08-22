@@ -333,7 +333,16 @@ func (u *Task)Sendemail(tastrunId int64)(error){
 		chooseEm:=emArr[rand.Intn(len(emArr))]
 		toMail:= make([]string, 3)
 		toMail[0]=v.Email
-		serErr:=emailser.Sendemail(seremail,toMail,chooseEm.TplTitle,chooseEm.TplContent)
+		
+		//replace email content
+		chooseEm,reErr:=emailtplModel.Replacevar(chooseEm,v)
+		if(reErr!=nil){
+			logs.Error(reErr)
+			continue
+		}
+		
+		//send email
+		serErr:=emailser.Sendemailtsl(seremail,toMail,chooseEm.TplTitle,chooseEm.TplContent)
 		if(serErr!=nil){
 			return serErr
 		}
