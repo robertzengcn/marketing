@@ -1,13 +1,17 @@
 package models
-import(
-	beego "github.com/beego/beego/v2/server/web"
+
+import (
+	"encoding/json"
+	"errors"
 	"marketing/utils"
-	"github.com/beego/beego/v2/core/logs"
 	"path/filepath"
 	"runtime"
-	"encoding/json"
-	"github.com/beego/beego/v2/client/orm"
 	"time"
+
+	"github.com/beego/beego/v2/client/orm"
+	"github.com/beego/beego/v2/core/logs"
+	beego "github.com/beego/beego/v2/server/web"
+
 	// "errors"
 	"sync"
 )
@@ -59,7 +63,7 @@ func (u *FetchEmail)Fetchtaskemail(taskrunid int64)(error){
 		}
 		// Increment the WaitGroup counter.
 		wg.Add(1)
-		go u.Sendquerycom(s.Link,taskrunid,&wg)
+		go u.Sendquerycom(s.Link,taskrunid,&wg,true)
 
 	}
 	wg.Wait()
@@ -67,7 +71,7 @@ func (u *FetchEmail)Fetchtaskemail(taskrunid int64)(error){
 	return nil
 }
 ///send query email command
-func (u *FetchEmail)Sendquerycom(url string,runid int64,wg *sync.WaitGroup)(error){
+func (u *FetchEmail)Sendquerycom(url string,runid int64,wg *sync.WaitGroup,sendEmail bool)(error){
 	// Decrement the counter when the goroutine completes.
 	defer wg.Done()
 	gHost, gherr := beego.AppConfig.String("emailscrape::host")
@@ -134,10 +138,27 @@ func (u *FetchEmail)Sendquerycom(url string,runid int64,wg *sync.WaitGroup)(erro
 	var fetcharr []FetchEmail
 	json.Unmarshal(byteValue, &fetcharr)
 	logs.Info(fetcharr)
+	if(len(fetcharr)<1){
+		return errors.New("now find email")
+	}
+	mailModel:=MailLog{}
+	emailser := EmailService{}
 	for _,x:= range fetcharr {
 		x.RunId=runid
-		go u.SaveEmail(x)
+		u.SaveEmail(x)
+		if(sendEmail){//require send email
+			mbools,mErr:=mailModel.Checkemailsend(x.Email,runid)
+			if(mErr!=nil){
+				logs.Error(mErr)
+			}
+			if(mbools){
+				continue
+			}
+			emailser.Sendemailtask(&x, runid)
+
+		}
 	}
+	
 	return nil
 }
 ///save email to local

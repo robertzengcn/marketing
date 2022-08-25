@@ -52,3 +52,15 @@ func(u *TaskRun)GetOne(taskrunid int64)(*TaskRun,error){
 		return &taskrun,nil
 	}
 }
+///get task struct by task run id
+func(u *TaskRun)Gettaskbyrun(taskrunId int64)(*Task,error){
+	taskrun:=TaskRun{}
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+
+	qErr:=qs.Filter("Id", taskrunId).RelatedSel().One(&taskrun)
+	if(qErr!=nil){
+		return nil,qErr
+	}
+	return taskrun.Task,nil
+}

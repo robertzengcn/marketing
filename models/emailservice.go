@@ -7,6 +7,7 @@ import (
 	"github.com/beego/beego/v2/core/logs"
 	"github.com/beego/beego/v2/core/validation"
 	// "net/mail"
+	"math/rand"
 	"net/smtp"
 	"strconv"
 	"strings"
@@ -46,6 +47,7 @@ func (u *EmailService) Sendemailtsl(emailService *EmailService, toList []string,
 		"To: " + toHeader + "\n" + // use toHeader
 		"Subject: " + subject + "\n\n" +
 		body)
+	logs.Info(string(msg))
 	// Connect to the SMTP Server
 	servername := emailService.Host + ":" + emailService.Port
 
@@ -80,8 +82,9 @@ func (u *EmailService) Sendemailtsl(emailService *EmailService, toList []string,
 		logs.Error(err)
 		return err
 	}
-	for _, v := range toList {
-		if err = c.Rcpt(v); err != nil {
+	logs.Info(toList)
+	for _, v := range toList {	
+		if err = c.Rcpt(strings.TrimSpace(v)); err != nil {
 			logs.Error(err)
 			return err
 		}
@@ -90,19 +93,20 @@ func (u *EmailService) Sendemailtsl(emailService *EmailService, toList []string,
 	w, err := c.Data()
 	if err != nil {
 		logs.Error(err)
-			return err
+		return err
 	}
+	
 	_, err = w.Write([]byte(msg))
-    if err != nil {
-        logs.Error(err)
-			return err
-    }
-
-	err = w.Close()
-    if err != nil {
+	if err != nil {
 		logs.Error(err)
 		return err
-    }
+	}
+
+	err = w.Close()
+	if err != nil {
+		logs.Error(err)
+		return err
+	}
 	c.Quit()
 	u.Updatesendtime(emailService.Id)
 	return nil
@@ -150,7 +154,7 @@ func (u *EmailService) GetEsbycam(campaignId int64) (*EmailService, error) {
 	var ess []EmailService
 	o := orm.NewOrm()
 	qs := o.QueryTable(u)
-	_, mailerr := qs.Filter("campaign_id", campaignId).OrderBy("usetime asc").Limit(1).All(&ess, "Id", "From", "Password", "Host", "Port")
+	_, mailerr := qs.Filter("campaign_id", campaignId).OrderBy("usetime").Limit(1).All(&ess, "Id", "From", "Password", "Host", "Port")
 	if mailerr != nil {
 		return nil, mailerr
 	}
@@ -177,4 +181,62 @@ func (u *EmailService) GetOne(serId int64) (*EmailService, error) {
 	} else {
 		return &emailSeModel, nil
 	}
+}
+
+///send email to target email
+func (u *EmailService) Sendemailtask(fetchemail *FetchEmail, taskrunId int64) error {
+
+	//get CampaignId
+	taskrunModel := TaskRun{}
+	taskrun, terr := taskrunModel.GetOne(taskrunId)
+	if terr != nil {
+		return terr
+	}
+	taskModel := Task{}
+	task, taerr := taskModel.GetOne(taskrun.Task.Id)
+	if taerr != nil {
+		return taerr
+	}
+
+	//get all email Email tpl
+	emailtplModel := EmailTpl{}
+	emArr, emErr := emailtplModel.Getalltpl(task.CampaignId.CampaignId)
+	if emErr != nil {
+		return emErr
+	}
+	if(len(emArr)<1){
+		return errors.New("email tpl empty")
+	}
+	//getmail account for send email
+	seremail, sererr := u.GetEsbycam(task.CampaignId.CampaignId)
+	if sererr != nil {
+		return sererr
+	}
+	//get random email tpl
+	rand.Seed(time.Now().Unix())
+
+	chooseEm := emArr[rand.Intn(len(emArr))]
+	toMail := make([]string, 3)
+	toMail[0] = fetchemail.Email
+
+	//replace email content
+	// emailtplModel:=EmailTpl{}
+	chooseEm, reErr := emailtplModel.Replacevar(chooseEm, fetchemail)
+	if reErr != nil {
+		return reErr
+	}
+
+	//send email
+	serErr := u.Sendemailtsl(seremail, toMail, chooseEm.TplTitle, chooseEm.TplContent)
+	if serErr != nil {
+		return serErr
+	}
+	maillogModel := MailLog{Campaign: task.CampaignId,
+		Subject:   chooseEm.TplTitle,
+		Content:   chooseEm.TplContent,
+		Receiver:  toMail[0],
+		TaskrunId: taskrun,
+	}
+	maillogModel.Addmaillog(maillogModel)
+	return nil
 }

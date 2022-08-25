@@ -40,4 +40,19 @@ func (u *MailLog)Addmaillog(maillog MailLog)(int64,error){
 	}
 	return id,err
 }
+///check a email whether has been send before
+func (u *MailLog)Checkemailsend(email string,taskrunId int64)(bool, error){
+	taskrunModel:=TaskRun{}
+	task,terr:=taskrunModel.Gettaskbyrun(taskrunId)
+	if(terr!=nil){
+		return false,terr
+	}
+	logNum, _ := u.Getemailcam(email, task.CampaignId.CampaignId)
+		if logNum > 0 { //mail already exist in log
+			return true,nil
+		}else{
+			return false,nil
+		}
+
+}
 

@@ -15,7 +15,7 @@ import (
 	beego "github.com/beego/beego/v2/server/web"
 	"path/filepath"
 	"runtime"
-	"math/rand"
+	// "math/rand"
 )
 
 var DefaultTask *Task
@@ -61,7 +61,7 @@ func (u *Task) Readfile(filename string) ([]SearchRequest, error) {
 	// defer jsonFile.Close()
 	// // read our opened xmlFile as a byte array.
 	// byteValue, _ := ioutil.ReadAll(jsonFile)
-	byteValue, _ :=utils.ReadFile(filename)
+	byteValue, _ := utils.ReadFile(filename)
 	// we initialize our Users array
 	var serequestarr []SearchRequest
 	json.Unmarshal(byteValue, &serequestarr)
@@ -196,8 +196,8 @@ func (u *Task) Starttask(taskId int64) {
 	outputFile := "/app/GoogleScraper/" + outputFilename
 	logs.Info(outputFile)
 	nunPage := "10"
-	workNum:="2"
-	keywordCom := "GoogleScraper -m selenium --sel-browser chrome --browser-mode headless --keyword-file " + keywordfile + " --num-workers "+workNum+" --output-filename " + outputFile + " --num-pages-for-keyword " + nunPage + " -v debug"
+	workNum := "2"
+	keywordCom := "GoogleScraper -m selenium --sel-browser chrome --browser-mode headless --keyword-file " + keywordfile + " --num-workers " + workNum + " --output-filename " + outputFile + " --num-pages-for-keyword " + nunPage + " -v debug"
 
 	logs.Info(keywordCom)
 	kout, kerr := conn.SendCommands(keywordCom)
@@ -237,22 +237,21 @@ func (u *Task) Starttask(taskId int64) {
 
 	logs.Info(serequestarr)
 	searchreqModel := SearchRequest{}
-	serr := searchreqModel.Savesrlist(serequestarr,runid)
+	serr := searchreqModel.Savesrlist(serequestarr, runid)
 	if serr != nil {
 		logs.Error(rerr)
 		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: serr})
 		return
 	}
 	logs.Info("start fetch email")
-	fetchModel:=FetchEmail{}
-	fErr:=fetchModel.Fetchtaskemail(runid)
-	if(fErr!=nil){
+	fetchModel := FetchEmail{}
+	fErr := fetchModel.Fetchtaskemail(runid)
+	if fErr != nil {
 		logs.Error(fErr)
-	}	
+	}
 	logs.Info("start send email")
-	u.Sendemail(runid)
+	// u.Sendemail(runid)
 
-	
 }
 
 ///handle error during run task
@@ -288,72 +287,75 @@ func (u *Task) Handletaskerror(res *Result) error {
 	// f.Sync()
 	return nil
 }
+
 ///send email for taskrun id
-func (u *Task)Sendemail(tastrunId int64)(error){
+func (u *Task) Sendemail(tastrunId int64) error {
 	//get CampaignId
-	taskrunModel:=TaskRun{}
-	taskrun,terr:=taskrunModel.GetOne(tastrunId)
-	if(terr!=nil){
-		return terr
-	}
-	taskModel:=Task{}
-	task,taerr:=taskModel.GetOne(taskrun.Task.Id)
-	if(taerr!=nil){
-		return taerr
-	}
-	//get all email Email tpl
-	emailtplModel:=EmailTpl{}
-	emArr,emErr:=emailtplModel.Getalltpl(task.CampaignId.CampaignId)
-	if(emErr!=nil){
-		return emErr
-	}
+	// taskrunModel := TaskRun{}
+	// taskrun, terr := taskrunModel.GetOne(tastrunId)
+	// if terr != nil {
+	// 	return terr
+	// }
+	// taskModel := Task{}
+	// task, taerr := taskModel.GetOne(taskrun.Task.Id)
+	// if taerr != nil {
+	// 	return taerr
+	// }
+	
 	//get all email by task run id
-	fetModel:=FetchEmail{}
-	femailslice,fnum,ferr:=fetModel.Fetchallemail(tastrunId)
-	if(ferr!=nil){
+	fetModel := FetchEmail{}
+	femailslice, fnum, ferr := fetModel.Fetchallemail(tastrunId)
+	if ferr != nil {
 		return ferr
 	}
-	if(fnum==0){
+	if fnum == 0 {
 		return errors.New("not find email with task run id")
 	}
-	mailModel:=MailLog{}
-	emailser:=EmailService{}
-	for _,v:=range femailslice {
-		logNum,_:=mailModel.Getemailcam(v.Email,task.CampaignId.CampaignId)
-		if(logNum>0){//mail already exist in log
+	mailModel := MailLog{}
+	emailser := EmailService{}
+	for _, v := range femailslice {
+		// logNum, _ := mailModel.Getemailcam(v.Email, task.CampaignId.CampaignId)
+		// if logNum > 0 { //mail already exist in log
+		// 	continue
+		// }
+		mbool,mErr:=mailModel.Checkemailsend(v.Email,tastrunId)
+		if(mErr!=nil){
+			logs.Error(mErr)
+		}
+		if(mbool){
 			continue
 		}
 		//getmail account for send email
-		seremail,sererr:=emailser.GetEsbycam(task.CampaignId.CampaignId)
-		if(sererr!=nil){
-			return sererr
-		}
-		//get random email tpl
-		rand.Seed(time.Now().Unix()) 
-		chooseEm:=emArr[rand.Intn(len(emArr))]
-		toMail:= make([]string, 3)
-		toMail[0]=v.Email
-		
-		//replace email content
-		chooseEm,reErr:=emailtplModel.Replacevar(chooseEm,v)
-		if(reErr!=nil){
-			logs.Error(reErr)
-			continue
-		}
-		
-		//send email
-		serErr:=emailser.Sendemailtsl(seremail,toMail,chooseEm.TplTitle,chooseEm.TplContent)
-		if(serErr!=nil){
-			return serErr
-		}
-		maillogModel:=MailLog{Campaign: task.CampaignId,
-			Subject:chooseEm.TplTitle,
-			Content: chooseEm.TplContent,
-			Receiver: toMail[0],
-			TaskrunId: taskrun,
-		 }
-		 maillogModel.Addmaillog(maillogModel)
+		// seremail,sererr:=emailser.GetEsbycam(task.CampaignId.CampaignId)
+		// if(sererr!=nil){
+		// 	return sererr
+		// }
+		// //get random email tpl
+		// rand.Seed(time.Now().Unix())
+		// chooseEm:=emArr[rand.Intn(len(emArr))]
+		// toMail:= make([]string, 3)
+		// toMail[0]=v.Email
 
+		// //replace email content
+		// chooseEm,reErr:=emailtplModel.Replacevar(chooseEm,v)
+		// if(reErr!=nil){
+		// 	logs.Error(reErr)
+		// 	continue
+		// }
+
+		// //send email
+		// serErr:=emailser.Sendemailtsl(seremail,toMail,chooseEm.TplTitle,chooseEm.TplContent)
+		// if(serErr!=nil){
+		// 	return serErr
+		// }
+		// maillogModel:=MailLog{Campaign: task.CampaignId,
+		// 	Subject:chooseEm.TplTitle,
+		// 	Content: chooseEm.TplContent,
+		// 	Receiver: toMail[0],
+		// 	TaskrunId: taskrun,
+		//  }
+		//  maillogModel.Addmaillog(maillogModel)
+		emailser.Sendemailtask(v, tastrunId)
 	}
-	return nil	
+	return nil
 }

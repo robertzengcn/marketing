@@ -35,8 +35,12 @@ func (c *EmailtplController) CreateEmailtpl() {
 	}
 	logs.Info(campaiginVar)
 	emailtplModel := models.EmailTpl{}
-	emailVar := models.EmailTpl{TplTitle: email_title, 
-		TplContent: email_content,CampaignId: campaiginVar}
+	emailVar := models.EmailTpl{
+		TplTitle: email_title, 
+		TplContent: email_content,
+		CampaignId: campaiginVar,
+		Status: 1,
+	}
 	logs.Info(emailVar)	
 	emailId, emailerr := emailtplModel.Createone(emailVar)
 	if emailerr != nil {
