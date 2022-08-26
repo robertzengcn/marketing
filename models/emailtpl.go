@@ -84,10 +84,13 @@ func (u *EmailTpl)Replacevar(et *EmailTpl, femail *FetchEmail)(*EmailTpl,error){
 	et.TplTitle=strings.Replace(et.TplTitle,"{$host}",hostname,-1)
 	et.TplTitle=strings.Replace(et.TplTitle,"{$receiver_email}",femail.Email,-1)
 	et.TplTitle=strings.Replace(et.TplTitle,"{$send_time}",now.Format(time.ANSIC),-1)
+	et.TplTitle=strings.Replace(et.TplTitle,"{$url}",femail.Url,-1)
 
 	et.TplContent=strings.Replace(et.TplContent,"{$host}",hostname,-1)
 	et.TplContent=strings.Replace(et.TplContent,"{$receiver_email}",femail.Email,-1)
 	et.TplContent=strings.Replace(et.TplContent,"{$send_time}",now.Format(time.ANSIC),-1)
+	et.TplContent=strings.Replace(et.TplContent,"{$url}",femail.Url,-1)
+	et.TplContent=strings.Replace(et.TplContent,"{$description}",femail.Description,-1)
 	return et,nil
 }
 

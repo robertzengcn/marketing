@@ -65,38 +65,3 @@ func (c *EmailserviceController) Addemailservice(){
 	}
 	c.SuccessJson(emId)
 }
-func (c *EmailserviceController) Testsendemail(){
-	ser_id,serErr := c.GetInt64("server_id")
-	if(serErr!=nil){
-		c.ErrorJson(20220816100967, serErr.Error(), nil)
-	}
-	toemail := c.GetString("to_email")
-	if(len(toemail)<1){
-		c.ErrorJson(20220815102320, "get to email error", nil)
-	}
-	if(!utils.ValidEmail(toemail)){
-		c.ErrorJson(20220816102775, "to email format error", nil)
-	}
-	title := c.GetString("title")
-	if(len(title)<1){
-		c.ErrorJson(20220816103182, "email title error", nil)
-	}
-	content := c.GetString("content")
-	if(len(content)<1){
-		c.ErrorJson(20220816103286, "email content error", nil)
-	}
-
-	emailModel:=models.EmailService{}
-	emailSer,emailerr:=emailModel.GetOne(ser_id)
-	if(emailerr!=nil){
-		c.ErrorJson(20220816101672,emailerr.Error(),nil)		
-	}
-	var toList []string
-	toList = append(toList, toemail)
-
-	sendErr:=emailModel.Sendemailtsl(emailSer,toList,title,content)
-	if(sendErr!=nil){
-		c.ErrorJson(20220816103399,sendErr.Error(),nil)		
-	}
-	c.SuccessJson(nil)
-}
