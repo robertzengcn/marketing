@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"fmt"
 	"marketing/utils"
+	"github.com/beego/beego/v2/core/logs"
 )
 
 type TestController struct {
@@ -83,5 +84,17 @@ func (c *TestController) Testsendemail(){
 		c.ErrorJson(20220816103399,sendErr.Error(),nil)		
 	}
 
+	c.SuccessJson(nil)
+}
+func (c *TestController) Checkemailsend(){
+	email := c.GetString("email")
+	taskrun_id, _ := c.GetInt64("taskrunid")
+
+	mailModel:=models.MailLog{}
+	mbools,mErr:=mailModel.Checkemailsend(email,taskrun_id)
+	if(mErr!=nil){
+		logs.Error(mErr)
+	}
+	logs.Info(mbools)
 	c.SuccessJson(nil)
 }

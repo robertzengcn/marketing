@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"marketing/utils"
 )
 
 type EmailService struct {
@@ -84,6 +85,11 @@ func (u *EmailService) Sendemailtsl(emailService *EmailService, toList []string,
 	}
 	logs.Info(toList)
 	for _, v := range toList {	
+		sendemail:=strings.TrimSpace(v)
+		if(!utils.ValidEmail(sendemail)){
+			logs.Error("error email:"+sendemail)
+			continue
+		}
 		if err = c.Rcpt(strings.TrimSpace(v)); err != nil {
 			logs.Error(err)
 			return err
@@ -216,7 +222,7 @@ func (u *EmailService) Sendemailtask(fetchemail *FetchEmail, taskrunId int64) er
 	rand.Seed(time.Now().Unix())
 
 	chooseEm := emArr[rand.Intn(len(emArr))]
-	toMail := make([]string, 3)
+	toMail := make([]string, 1)
 	toMail[0] = fetchemail.Email
 
 	//replace email content

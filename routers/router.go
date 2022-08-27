@@ -44,6 +44,7 @@ func init() {
 		),
 		beego.NSRouter("/savesearchreq", &controllers.TestController{}, "get:Savesearchrequest"),
 		beego.NSRouter("/testsendemail", &controllers.TestController{}, "post:Testsendemail"),
+		beego.NSRouter("/checkemailsend", &controllers.TestController{}, "post:Checkemailsend"),
 	)
 	beego.AddNamespace(ns)
 }

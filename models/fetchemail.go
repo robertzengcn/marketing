@@ -61,6 +61,12 @@ func (u *FetchEmail)Fetchtaskemail(taskrunid int64)(error){
 		if(bres!=nil){//item in black list
 			continue
 		}
+		//check whether the domain alreay have email in db
+		sCount,_:=u.Fetchemaildomain(s.Domain)
+		if(sCount>0){
+			//domain alreay exist
+			continue
+		}
 		// Increment the WaitGroup counter.
 		wg.Add(1)
 		go u.Sendquerycom(s.Link,taskrunid,&wg,true)
@@ -194,4 +200,12 @@ func (u *FetchEmail)Fetchallemail(taskrunid int64)([]*FetchEmail,int64,error){
 	qs := o.QueryTable(u)
 	num, err :=qs.Filter("taskrunid", taskrunid).All(&fetmails)
 	return fetmails,num,err
+}
+///check whethe the domain already have email relative
+func (u *FetchEmail)Fetchemaildomain(domain string)(int64,error){
+	
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+
+	return qs.Filter("url__contains", domain).Count()
 }
