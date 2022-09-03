@@ -37,16 +37,20 @@ func init() {
 func (u *FetchEmail)Fetchtaskemail(taskrunid int64)(error){
 	var searchreqModel SearchRequest
 	// searchreqModel
-	seaReq,seaErr:=searchreqModel.Getrequestrunid(taskrunid)
-	logs.Info(seaReq);
+	seaReqArr,seaErr:=searchreqModel.Getrequestrunid(taskrunid)
+	logs.Info(seaReqArr);
 	if(seaErr!=nil){
 		return seaErr
 	}
+	for _,sv:=range seaReqArr{
 	var serplinkModel SerpLink
 	
-	serpList,_,serpLerr:=serplinkModel.GetlistbyReqid(seaReq.Id)
+	serpList,_,serpLerr:=serplinkModel.GetlistbyReqid(sv.Id)
 	if(serpLerr!=nil){
 		return serpLerr
+	}
+	if(len(serpList)<1){
+		return errors.New("not find any link to fetch email")
 	}
 	blacklistVar:=Blacklist{}
 	var wg sync.WaitGroup
@@ -73,6 +77,7 @@ func (u *FetchEmail)Fetchtaskemail(taskrunid int64)(error){
 
 	}
 	wg.Wait()
+	}
 	// logs.Info("fetch email complete")
 	return nil
 }

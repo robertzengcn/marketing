@@ -80,12 +80,13 @@ func(u *SearchRequest)SavedataDb(searchreq *SearchRequest)(int64,error){
 
 }
 ///get request by run id
-func(u *SearchRequest)Getrequestrunid(taskrunid int64)(*SearchRequest,error){
+func(u *SearchRequest)Getrequestrunid(taskrunid int64)([]*SearchRequest,error){
+	var srList []*SearchRequest
 	o := orm.NewOrm()
 	searchreq := SearchRequest{}
-	err :=o.QueryTable(&searchreq).Filter("task_run_id", taskrunid).One(&searchreq)
+	_, err :=o.QueryTable(&searchreq).Filter("task_run_id", taskrunid).All(&srList)
 	if(err!=nil){
 		return nil, err
 	}
-	return &searchreq,nil
+	return srList,nil
 }

@@ -249,7 +249,7 @@ func (u *Task) Starttask(taskId int64) {
 	if fErr != nil {
 		logs.Error(fErr)
 	}
-	// logs.Info("start send email")
+	logs.Info("task end")
 	// u.Sendemail(runid)
 
 }
