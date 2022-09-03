@@ -47,10 +47,14 @@ func (u *FetchEmail)Fetchtaskemail(taskrunid int64)(error){
 	
 	serpList,_,serpLerr:=serplinkModel.GetlistbyReqid(sv.Id)
 	if(serpLerr!=nil){
-		return serpLerr
+		// return serpLerr
+		logs.Error(serpLerr)
+		continue
 	}
 	if(len(serpList)<1){
-		return errors.New("not find any link to fetch email")
+		// return errors.New("not find any link to fetch email")
+		logs.Error("not find any link to fetch email")
+		continue
 	}
 	blacklistVar:=Blacklist{}
 	var wg sync.WaitGroup
