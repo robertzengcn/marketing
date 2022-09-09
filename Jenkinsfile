@@ -1,9 +1,9 @@
-pipline{
-    agent { label 'local-agent' }
-    stages{
-        stage("build docker composer"){
-            steps{
-              sh 'docker build -t amigamarketing .'  
+pipeline {
+    agent any 
+    stages {
+        stage('Stage 1') {
+            steps {
+                echo 'Hello world!' 
             }
         }
     }
