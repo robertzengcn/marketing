@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'local-agent' } 
+    agent { label 'jenkins-agent' } 
     stages {
         stage('build docker composer') {
             steps {
