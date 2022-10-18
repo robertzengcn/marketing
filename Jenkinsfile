@@ -1,9 +1,9 @@
-pipline{
-    agent { label 'local-agent' }
-    stages{
-        stage("build docker composer"){
-            steps{
-              sh 'docker build -t amigamarketing .'  
+pipeline {
+    agent { label 'jenkins-agent' } 
+    stages {
+        stage('build docker composer') {
+            steps {
+                 sh 'docker build -t amigamarketing .' 
             }
         }
     }
