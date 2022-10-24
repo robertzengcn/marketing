@@ -26,8 +26,8 @@ type Task struct {
 	TaskStatus  *TaskStatus `orm:"rel(fk);on_delete(do_nothing)"`
 	EmailTpl    *EmailTpl   `orm:"rel(fk);on_delete(do_nothing)" valid:"Required;"`
 	CampaignId  *Campaign   `orm:"rel(fk);on_delete(do_nothing)" valid:"Required;"`
-	CreatedTime time.Time   `orm:"auto_now_add;type(datetime)"`
-	UpdateTime  time.Time   `orm:"auto_now;type(datetime)"`
+	CreatedTime time.Time   `orm:"null;auto_now_add;type(datetime)"`
+	UpdateTime  time.Time   `orm:"null;auto_now;type(datetime)"`
 }
 
 func (u *Task) TableName() string {

@@ -11,7 +11,7 @@ type TaskRun struct {
 	Id      int64     `orm:"pk;auto"`
 	Task *Task `orm:"rel(fk);" valid:"Required;"`
 	Logid string `orm:"size(50)"`
-	Created time.Time `orm:"auto_now_add;type(datetime)"`
+	Created time.Time `orm:"null;auto_now_add;type(datetime)"`
 }
 func (u *TaskRun) TableName() string {
 	return "task_run"

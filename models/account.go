@@ -15,8 +15,8 @@ type Account struct {
 	Name    string    `orm:"size(100)"`
 	Password  string    `orm:"size(255)"`
 	Email   string    `orm:"size(150)"`
-	Created time.Time `orm:"auto_now_add;type(datetime)"`
-	Updated time.Time `orm:"auto_now;type(datetime)"`
+	Created time.Time `orm:"null;auto_now_add;type(datetime)"`
+	Updated time.Time `orm:"null;auto_now;type(datetime)"`
 }
 
 func (u *Account) TableName() string {

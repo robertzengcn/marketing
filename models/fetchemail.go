@@ -22,7 +22,7 @@ type FetchEmail struct {
 	Email string `orm:"size(150)" json:"email"`
 	Description string `orm:"size(300)" json:"description"`
 	RunId int64 `orm:"column(taskrunid)"`
-	Created time.Time `orm:"auto_now_add;type(datetime)"`
+	Created time.Time `orm:"null;auto_now_add;type(datetime)"`
 }
 func (u *FetchEmail) TableName() string {
 	return "fetchemail"
