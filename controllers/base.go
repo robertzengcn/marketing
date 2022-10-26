@@ -24,10 +24,10 @@ type BaseController struct {
 }
 
 type ReturnMsg struct {
-	Status bool
-	Code   int
-	Msg    string
-	Data   interface{}
+	Status bool `json:"status"`
+	Code   int  `json:"code"`
+	Msg    string `json:"msg"`
+	Data   interface{} `json:"data"`
 }
 
 type langType struct {
@@ -38,7 +38,7 @@ type langType struct {
 func (c *BaseController) SuccessJson(data interface{}) {
 
 	res := ReturnMsg{
-		true, 200, "success", data,
+		true, 20000, "success", data,
 	}
 	c.Data["json"] = res
 	c.ServeJSON() //对json进行序列化输出
@@ -70,9 +70,9 @@ func Filter_user(ctx *context.Context) {
 		if !utils.Contains(s, ctx.Request.RequestURI) {
 			// if ctx.Input.IsAjax() {
 				jsonData := make(map[string]interface{}, 3)
-
-				jsonData["errcode"] = 403
-				jsonData["message"] = "You have to login to continue"
+				jsonData["status"]=false
+				jsonData["code"] = 403
+				jsonData["msg"] = "You have to login to continue"
 
 				returnJSON, _ := json.Marshal(jsonData)
 				ctx.ResponseWriter.Header().Set("Content-Type", "application/json;charset=UTF-8;")

@@ -12,6 +12,7 @@ import (
 	"github.com/beego/beego/v2/core/config"
 	"github.com/beego/i18n"
 	"github.com/beego/beego/v2/core/logs"
+	"github.com/beego/beego/v2/server/web/filter/cors"
 )
 
 func init() {
@@ -52,6 +53,16 @@ func innerFunc(errorObj error ) {
 
 
 func main() {
+	if beego.BConfig.RunMode == "dev" {
+	
+		beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
+			AllowOrigins:     []string{"*"},
+			AllowMethods:     []string{"*"},
+			AllowHeaders:     []string{"Origin", "Authorization", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Content-Type"},
+			ExposeHeaders:    []string{"*"},
+			AllowCredentials: true,
+		}))
+		}
 	beego.InsertFilter("/*", beego.BeforeExec, controllers.Filter_user)
 	// utils.InitTask()
 	// task.StartTask()
@@ -65,5 +76,6 @@ func main() {
 
     _ = logs.SetGlobalFormatter("pattern")
 	beego.AddFuncMap("i18n", i18n.Tr)
+	
 	beego.Run()
 }

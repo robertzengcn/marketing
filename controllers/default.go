@@ -18,3 +18,6 @@ func (c *MainController) Get() {
 func (c *MainController) Healthcheck() {
 	c.Ctx.WriteString("hello")
 }
+func (c *MainController) Checkoption() {
+	
+}

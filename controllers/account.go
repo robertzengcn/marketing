@@ -7,9 +7,9 @@ import (
 	// "github.com/beego/beego/v2/core/logs"
 )
 type AccountResponse struct{
-	Id int64
-	Name    string
-	Email   string
+	// Id int64
+	// Name    string
+	// Email   string
 	Token   string
 }
 type AccountController struct {
@@ -26,7 +26,7 @@ type AccountController struct {
 ///valid account
 func (c *AccountController) Validaccount() {
 	username := c.GetString("username")
-	pass:=c.GetString("pass")
+	pass:=c.GetString("password")
 	if len(username) == 0 || len(pass) == 0{
 		//用户名和邮箱为空
 		c.ErrorJson(20211122163020,c.Tr("email_pass_empty"),nil)
@@ -36,7 +36,8 @@ func (c *AccountController) Validaccount() {
 	// l.Println("33333")	
 	// l.Println(c.Tr("welcome"))
 	// l.Println("44444")
-	account,err:=models.Validaccount(username,pass)
+	accountModel:=models.Account{}
+	account,err:=accountModel.Validaccount(username,pass)
 
 	if err !=nil {	
 		
@@ -48,9 +49,10 @@ func (c *AccountController) Validaccount() {
 		if(tokenerr!=nil){
 			c.ErrorJson(20211201164342,tokenerr.Error(),nil)
 		}
-		accountRes :=AccountResponse{Id:account.Id,
-			Name:account.Name,
-			Email: account.Email,
+		accountRes :=AccountResponse{
+			// Id:account.Id,
+			// Name:account.Name,
+			// Email: account.Email,
 			Token:token,
 		}
 
