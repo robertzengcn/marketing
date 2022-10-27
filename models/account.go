@@ -8,6 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"time"
 	"marketing/utils"
+	// "github.com/beego/beego/v2/core/logs"
 )
 
 type Account struct {
@@ -89,7 +90,9 @@ func (u *Account)AddAccount(username string, email string,password string) (id i
 ///check is account valid
 func (u *Account)Validaccount(username string, pass string) (account Account, err error) {
 	o := orm.NewOrm()
+	// l := logs.GetLogger()
 	epass:=u.EncryptionPass(pass)
+	// l.Println(epass)
 	qs := o.QueryTable(new(Account))
 	if(utils.ValidEmail(username)){
 		err =qs.Filter("email", username).Filter("password", epass).One(&account,"Id","Name","Email")
