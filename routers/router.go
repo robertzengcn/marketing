@@ -24,7 +24,7 @@ func init() {
 			return
 		}
 	}
-
+	beego.Router("*", &controllers.MainController{}, "options:Checkoption")
 	beego.Router("/", &controllers.MainController{})
 	beego.Router("/campaign/create", &controllers.CampaignController{}, "post:CreateCampaign")
 	beego.Router("/task/create", &controllers.TaskController{}, "post:CreateTask")

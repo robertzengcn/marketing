@@ -8,6 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"time"
 	"marketing/utils"
+	// "github.com/beego/beego/v2/core/logs"
 )
 
 type Account struct {
@@ -38,7 +39,7 @@ func init() {
 /**
 * query user account data
  */
-func IndexAllAccount(start int,number int) (accounts []Account, err error) {
+func (u *Account)IndexAllAccount(start int,number int) (accounts []Account, err error) {
 	o := orm.NewOrm()
 
 	var us []Account
@@ -60,7 +61,7 @@ func IndexAllAccount(start int,number int) (accounts []Account, err error) {
 }
 
 //按照id查询
-func Selectbyid(id int) (account Account, err error) {
+func (u *Account)Selectbyid(id int) (account Account, err error) {
 	o := orm.NewOrm()
 	var us Account
 	errs := o.Raw("SELECT id, name,email,created,updated FROM gotest_account WHERE id = ?", id).QueryRow(&us)
@@ -68,35 +69,42 @@ func Selectbyid(id int) (account Account, err error) {
 }
 
 //query all rows
-func SelectAccountlist() (accounts []Account, err error) {
+func (u *Account)SelectAccountlist() (accounts []Account, err error) {
 	o := orm.NewOrm()
 	var users []Account
 	_, errs := o.QueryTable("gotest_account").All(&users)
 	return users, errs
 }
 ///add account
-func AddAccount(username string, email string) (id int64, err error) {
+func (u *Account)AddAccount(username string, email string,password string) (id int64, err error) {
 	o := orm.NewOrm()
 	var us Account
 	us.Name = username
 	us.Email = email
+	us.Password=u.EncryptionPass(password)
 	id, err = o.Insert(&us)
 	// if err == nil {
 		return id,err
 	// }
 }
 ///check is account valid
-func Validaccount(username string, pass string) (account Account, err error) {
+func (u *Account)Validaccount(username string, pass string) (account Account, err error) {
 	o := orm.NewOrm()
-	
+	// l := logs.GetLogger()
+	epass:=u.EncryptionPass(pass)
+	// l.Println(epass)
 	qs := o.QueryTable(new(Account))
 	if(utils.ValidEmail(username)){
-		err =qs.Filter("email", username).Filter("password", pass).One(&account,"Id","Name","Email")
+		err =qs.Filter("email", username).Filter("password", epass).One(&account,"Id","Name","Email")
 	}else{
-	err =qs.Filter("name", username).Filter("password", pass).One(&account,"Id","Name","Email")
+	err =qs.Filter("name", username).Filter("password", epass).One(&account,"Id","Name","Email")
 		}
 	// account = Account{Name: username,Email:email}
 	// err=o.Read(&account)
 	
 	return account,err	
+}
+///encryption user password
+func (u *Account)EncryptionPass(pass string)(string){
+	return utils.Md5V2(pass)
 }
