@@ -10,7 +10,7 @@ pipeline {
       }
         stage('build docker composer') {
             steps {
-                 sh 'docker image rm amigamarketing 2>&1 > /dev/null'
+                 sh 'docker image rm amigamarketing ||true'
                  sh 'docker build -t amigamarketing .' 
             }
         }
