@@ -10,7 +10,8 @@ pipeline {
       }
         stage('build docker composer') {
             steps {
-                 sh 'docker build --no-cache -t amigamarketing .' 
+                 sh 'docker image rm amigamarketing ||true'
+                 sh 'docker build -t amigamarketing .' 
             }
         }
     }
