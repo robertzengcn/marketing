@@ -43,6 +43,10 @@ func (c *EmailserviceController) Addemailservice(){
 	if(camErr!=nil){
 		c.ErrorJson(202208151003, "get campaign id error", nil)
 	}
+	// sender := c.GetString("sender_name")
+	// if(len(sender)<1){
+	// 	c.ErrorJson(202208151003, "get sender name error", nil)
+	// }
 	///vail campaign id valid
 	camModel:=models.Campaign{}
 	emailCampaign,ecErr:=camModel.FindCambyid(campaign_id)
@@ -56,6 +60,7 @@ func (c *EmailserviceController) Addemailservice(){
 		Password: service_pass,
 		Port: service_port,
 		Host: service_host,
+		// SenderName: sender,
 		Campaign: emailCampaign,
 		Status: 1,
 	}

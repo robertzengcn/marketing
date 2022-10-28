@@ -23,6 +23,7 @@ type EmailService struct {
 	Port     string    `orm:"size(4)" valid:"Required"`
 	Campaign *Campaign `orm:"rel(fk);on_delete(do_nothing);column(campaign_id)"`
 	Name     string    `orm:"size(250);description(the name of mailservice)"`
+	// SenderName string  `orm:"size(250);"`
 	Status   int       `orm:"size(1);default(1);description(this mean status of the mailservice)"`
 	Usetime  time.Time `orm:"null;type(datetime)"`
 }
