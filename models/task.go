@@ -15,6 +15,7 @@ import (
 	beego "github.com/beego/beego/v2/server/web"
 	"path/filepath"
 	"runtime"
+	"os"
 	// "math/rand"
 )
 
@@ -218,6 +219,15 @@ func (u *Task) Starttask(taskId int64) {
 
 	_, file, _, _ := runtime.Caller(0)
 	apppath, _ := filepath.Abs(filepath.Dir(filepath.Join(file, ".."+string(filepath.Separator))))
+	outPath:=apppath + "/output/"
+	if _, err := os.Stat(outPath); os.IsNotExist(err) {
+		err := os.Mkdir(outPath, 0755)
+		if(err!=nil){
+			logs.Error(err)
+			u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: err})
+			return
+		}
+	}
 	localFilepath := apppath + "/output/" + outputFilename
 	derr := conn.Downloadfile(sftpClient, outputFile, localFilepath)
 	if derr != nil {
