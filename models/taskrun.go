@@ -1,8 +1,10 @@
 package models
 
 import (
-	"github.com/beego/beego/v2/client/orm"
 	"time"
+
+	"github.com/beego/beego/v2/client/orm"
+	"github.com/beego/beego/v2/core/logs"
 	"github.com/google/uuid"
 	// "errors"
 )
@@ -25,6 +27,7 @@ func init() {
 func (u *TaskRun)CreateRun(taskid int64)(int64,error){
 	taskModel:=Task{}
 	taskVar,taskErr:=taskModel.GetOne(taskid)
+	logs.Info(taskid)
 	if(taskErr!=nil){
 		return 0,taskErr
 	}

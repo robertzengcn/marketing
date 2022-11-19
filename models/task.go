@@ -25,7 +25,7 @@ type Task struct {
 	Id          int64       `orm:"pk;auto"`
 	TaskName    string      `orm:"size(150)" valid:"Required"`
 	TaskStatus  *TaskStatus `orm:"rel(fk);on_delete(do_nothing)"`
-	EmailTpl    *EmailTpl   `orm:"rel(fk);on_delete(do_nothing)" valid:"Required;"`
+	// EmailTpl    *EmailTpl   `orm:"rel(fk);on_delete(do_nothing)" valid:"Required;"`
 	CampaignId  *Campaign   `orm:"rel(fk);on_delete(do_nothing)" valid:"Required;"`
 	CreatedTime time.Time   `orm:"null;auto_now_add;type(datetime)"`
 	UpdateTime  time.Time   `orm:"null;auto_now;type(datetime)"`
@@ -128,6 +128,8 @@ func (u *Task) GetOne(taskId int64) (*Task, error) {
 
 ///start a task
 func (u *Task) Starttask(taskId int64) {
+	u.Updatetaskstatus(taskId, 3)
+	defer u.Updatetaskstatus(taskId, 4)
 	taskrunModel := TaskRun{}
 	runid, runErr := taskrunModel.CreateRun(taskId)
 	if runErr != nil {
@@ -216,7 +218,7 @@ func (u *Task) Starttask(taskId int64) {
 		u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: sftperr})
 		return
 	}
-
+	defer sftpClient.Close()
 	_, file, _, _ := runtime.Caller(0)
 	apppath, _ := filepath.Abs(filepath.Dir(filepath.Join(file, ".."+string(filepath.Separator))))
 	outPath:=apppath + "/output/"
@@ -261,6 +263,7 @@ func (u *Task) Starttask(taskId int64) {
 	}
 	logs.Info("task end")
 	// u.Sendemail(runid)
+	
 
 }
 
