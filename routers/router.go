@@ -35,6 +35,7 @@ func init() {
 	// beego.Router("/addSite", &controllers.CampaignController{}, "post:Createsite")
 	beego.Router("/emailtpl/create", &controllers.EmailtplController{}, "post:CreateEmailtpl")
 	beego.Router("/emailservice/add", &controllers.EmailserviceController{}, "post:Addemailservice")
+	beego.Router("/schedule/add", &controllers.ScheduleController{}, "post:CreateSchedule")
 	
 	// beego.Router("/welcome", &controllers.CampaignController{}, "get:Welcome")
 	beego.Router("/healthcheck", &controllers.MainController{}, "get:Healthcheck")
@@ -45,6 +46,10 @@ func init() {
 		beego.NSRouter("/savesearchreq", &controllers.TestController{}, "get:Savesearchrequest"),
 		beego.NSRouter("/testsendemail", &controllers.TestController{}, "post:Testsendemail"),
 		beego.NSRouter("/checkemailsend", &controllers.TestController{}, "post:Checkemailsend"),
+		beego.NSRouter("/testgetadultkeyword", &controllers.TestController{}, "post:Getadultkeyword"),
+		beego.NSRouter("/createtastschedule", &controllers.TestController{}, "post:Createtasksched"),
+		beego.NSRouter("/createdaytask", &controllers.TestController{}, "get:CreatedayTask"),
+
 	)
 	beego.AddNamespace(ns)
 }

@@ -13,6 +13,7 @@ type Campaign struct {
 	CampaignId      int64     `orm:"pk;auto"`
 	CampaignName    string    `orm:"size(100)"`
 	// EmailTpl   *EmailTpl	`orm:"rel(fk);on_delete(do_nothing)"`
+	Tags string `orm:"type(text);null"`
 }
 
 func (u *Campaign) TableName() string {

@@ -15,7 +15,7 @@ type TaskController struct {
 ///create task api
 func (c *TaskController) CreateTask() {
 	campaign_id, _ := c.GetInt64("campaign_id")
-	emailtpl_id, _ := c.GetInt64("emailtpl_id")
+	// emailtpl_id, _ := c.GetInt64("emailtpl_id")
 	task_name := c.GetString("task_name")
 	taskkeyword := c.GetString("task_keyword")
 	if len(taskkeyword) <= 0 {
@@ -29,17 +29,17 @@ func (c *TaskController) CreateTask() {
 		c.ErrorJson(20220615100923, cerr.Error(), nil)
 	}
 	//check email tpl id correct
-	emailtplModel := models.EmailTpl{}
-	emailtplVar, emerr := emailtplModel.GetOne(emailtpl_id)
-	if emerr != nil {
-		c.ErrorJson(20221615094023, emerr.Error(), nil)
-	}
+	// emailtplModel := models.EmailTpl{}
+	// emailtplVar, emerr := emailtplModel.GetOne(emailtpl_id)
+	// if emerr != nil {
+	// 	c.ErrorJson(20221615094023, emerr.Error(), nil)
+	// }
 	taskstatusModel := models.TaskStatus{Id: 1}
 	taskModel := models.Task{}
 	taskVar := models.Task{
 		TaskName:   task_name,
 		TaskStatus: &taskstatusModel,
-		EmailTpl:   emailtplVar,
+		// EmailTpl:   emailtplVar,
 		CampaignId: campaignVar}
 
 	taskid, taskerr := taskModel.Createtask(taskVar)
@@ -61,13 +61,13 @@ func (c *TaskController) UpdateTaskstatus() {
 	status_id, _ := c.GetInt64("status_id")
 	task_id, _ := c.GetInt64("task_id")
 	TaskModel := models.Task{}
-
+	if(status_id==3){
 	go TaskModel.Starttask(task_id)
-	
-	terr := TaskModel.Updatetaskstatus(task_id, status_id)
-	if terr != nil {
-		c.ErrorJson(20220617155052, terr.Error(), nil)
 	}
+	// terr := TaskModel.Updatetaskstatus(task_id, status_id)
+	// if terr != nil {
+	// 	c.ErrorJson(20220617155052, terr.Error(), nil)
+	// }
 	
 	
 	c.SuccessJson(nil)

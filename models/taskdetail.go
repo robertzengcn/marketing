@@ -10,7 +10,7 @@ import (
 type TaskDetail struct {
 	Id int64  `orm:"pk;auto"`
 	Task *Task `orm:"rel(fk);" valid:"Required;"`
-	Taskkeyword string `orm:"size(1000)"`
+	Taskkeyword string `orm:"type(text)"`
 	TaskFilename string `orm:"size(250)"`
 }
 // set engineer as INNODB

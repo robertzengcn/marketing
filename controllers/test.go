@@ -98,3 +98,39 @@ func (c *TestController) Checkemailsend(){
 	logs.Info(mbools)
 	c.SuccessJson(nil)
 }
+func (c *TestController) Getadultkeyword(){
+	keywordModel:=models.Keyword{}
+	err:=keywordModel.Getsexkeyword()
+	if(err!=nil){
+		logs.Error(err)
+		c.ErrorJson(202211170947,"error",err)
+	}
+	c.SuccessJson(nil)
+}
+///create task by schedule
+func (c *TestController)Createtasksched() {
+	scheduleid, _ := c.GetInt64("scheduleid")
+	scheduleModel:=models.Schedule{}
+	sId,sErr:=scheduleModel.Createtask(scheduleid)
+	if(sErr!=nil){
+		logs.Error(sErr)
+		c.ErrorJson(202211170947,sErr.Error(),sErr)
+	}
+	c.SuccessJson(sId)
+}
+func(c *TestController)CreatedayTask(){
+	scheduleModel:=models.Schedule{}
+		schVar, schErr:=scheduleModel.Findonebycyc("d")
+		if(schErr!=nil){
+			logs.Error(schErr)	
+			c.ErrorJson(202211191514126,schErr.Error(),nil)
+		}
+		staId,staerr:=scheduleModel.Createtask(schVar.Id)
+		if(staerr!=nil){
+			logs.Error(staerr)	
+			c.ErrorJson(202211191514131,staerr.Error(),nil)
+		}
+		TaskModel:=models.Task{}
+		go TaskModel.Starttask(staId)
+		c.SuccessJson(staId)
+}

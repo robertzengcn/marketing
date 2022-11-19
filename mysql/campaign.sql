@@ -1,0 +1,1 @@
+UPDATE `mk_campaign` SET `tags`='adult_site' WHERE (`campaign_id`='1');
