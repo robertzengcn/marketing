@@ -90,7 +90,7 @@ func (u *Schedule)Createtask(scheduleId int64)(int64,error){
 		return 0,errors.New("tag empty")
 	}
 	keywordModel:=Keyword{}
-	keywordArr,kErr:=keywordModel.Getkeywordbytag(tags,10)
+	keywordArr,kErr:=keywordModel.Getkeywordbytag(tags,5)
 	if(kErr!=nil){
 		return 0,kErr
 	}

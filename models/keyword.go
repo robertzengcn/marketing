@@ -148,6 +148,11 @@ func (u *Keyword)Getkeywordbytag(tagsArr []string,num int)([]*Keyword,error){
 	if(kerr!=nil){
 		return nil,kerr
 	}
+	currentTime := time.Now()
+	qs.Filter("keyword__in", keywordArrs).Update(orm.Params{
+		"used_time": currentTime.Format("2006.01.02 15:04:05"),
+	})
+
 	return keywordArrs,nil
 }
 
