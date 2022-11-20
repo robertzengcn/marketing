@@ -49,6 +49,8 @@ func init() {
 		beego.NSRouter("/testgetadultkeyword", &controllers.TestController{}, "post:Getadultkeyword"),
 		beego.NSRouter("/createtastschedule", &controllers.TestController{}, "post:Createtasksched"),
 		beego.NSRouter("/createdaytask", &controllers.TestController{}, "get:CreatedayTask"),
+		beego.NSRouter("/getkeywordbytag", &controllers.TestController{}, "get:Getkeywordbytag"),
+
 
 	)
 	beego.AddNamespace(ns)
