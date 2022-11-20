@@ -134,3 +134,14 @@ func(c *TestController)CreatedayTask(){
 		go TaskModel.Starttask(staId)
 		c.SuccessJson(staId)
 }
+
+func(c *TestController)Getkeywordbytag(){
+	var testarr []string
+	testarr = append(testarr, "adult_site")
+	keywordModel:=models.Keyword{}
+	kArr,kErr:=keywordModel.Getkeywordbytag(testarr,5)
+	if(kErr!=nil){
+		c.ErrorJson(202211201058144,kErr.Error(),nil)
+	}
+	c.SuccessJson(kArr)
+}
