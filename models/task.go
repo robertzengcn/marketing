@@ -176,6 +176,7 @@ func (u *Task) Starttask(taskId int64) {
 		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: cerr})
 		return
 	}
+	workNum:=beego.AppConfig.DefaultString("worrkernum","1")
 	// out := make(chan []byte)
 	// errs := make(chan error)
 
@@ -192,14 +193,14 @@ func (u *Task) Starttask(taskId int64) {
 		logs.Error(err)
 		return
 	}
-
+	
 	// out <-output
 	// close(out)
 	outputFilename := taskdetailVar.TaskFilename + "-output.json"
 	outputFile := "/app/GoogleScraper/" + outputFilename
 	logs.Info(outputFile)
 	nunPage := "10"
-	workNum := "2"
+	// workNum := "2"
 	keywordCom := "GoogleScraper -m selenium --sel-browser chrome --browser-mode headless --keyword-file " + keywordfile + " --num-workers " + workNum + " --output-filename " + outputFile + " --num-pages-for-keyword " + nunPage + " -v debug"
 
 	logs.Info(keywordCom)
