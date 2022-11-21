@@ -176,7 +176,7 @@ func (u *Task) Starttask(taskId int64) {
 		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: cerr})
 		return
 	}
-	workNum:=beego.AppConfig.DefaultString("worrkernum","1")
+	workNum:=beego.AppConfig.DefaultString("googlescrape::worrkernum","1")
 	// out := make(chan []byte)
 	// errs := make(chan error)
 
