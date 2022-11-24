@@ -117,3 +117,6 @@ func Gettopdomain(urls string)(string, error){
     hostname := strings.TrimPrefix(url.Hostname(), "www.")
 	return hostname,nil
 }
+func PanicFunc(errorObj error ) {
+	panic(errorObj.Error())
+}
