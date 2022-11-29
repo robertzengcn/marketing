@@ -12,6 +12,7 @@ import (
 	beego "github.com/beego/beego/v2/server/web"
 	// "errors"
 	"sync"
+	"github.com/korovkin/limiter"
 )
 
 type FetchEmail struct {
@@ -56,7 +57,11 @@ func (u *FetchEmail)Fetchtaskemail(taskrunid int64)(error){
 	}
 	blacklistVar:=Blacklist{}
 	var wg sync.WaitGroup
+	limit := limiter.NewConcurrencyLimiter(10)
+	defer limit.WaitAndClose()
+
 	for _, s := range serpList {
+		
 		topDomain,derror:=utils.Gettopdomain(s.Domain)
 		if(derror!=nil){
 		logs.Error(derror)
@@ -73,10 +78,12 @@ func (u *FetchEmail)Fetchtaskemail(taskrunid int64)(error){
 			//domain alreay exist
 			continue
 		}
+		limit.Execute(func() {
 		// Increment the WaitGroup counter.
 		wg.Add(1)
+		//need limit go runtime	
 		go u.Sendquerycom(s.Link,taskrunid,&wg,true)
-
+		})
 	}
 	wg.Wait()
 	}
