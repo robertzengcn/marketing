@@ -1,4 +1,4 @@
-FROM golang:1.16.15 AS builder
+FROM golang:1.17 AS builder
 
 ENV GOPATH  /go_workspace
 ENV APP_DIR $GOPATH/src/
