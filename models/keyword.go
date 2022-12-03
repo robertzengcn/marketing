@@ -10,6 +10,11 @@ import (
 	"runtime"
 	"path/filepath"
 	"encoding/json"
+	"github.com/beego/beego/v2/core/config"
+	"net/http"
+	"io/ioutil"
+	"errors"
+	"strings"
 )
 type Keyword struct {
 	Id int64  `orm:"pk;auto" json:"-"`
@@ -19,6 +24,12 @@ type Keyword struct {
 	Created time.Time `orm:"null;auto_now_add;type(datetime)"`
 	UsedTime time.Time `orm:"null;"`
 
+}
+type Adultapiresp struct{
+	Status bool `json:"status"`
+	Msg string `json:"msg"`
+	Code int `json:"code"`
+	Data []string `json:"data"`
 }
 
 const(ADULTSITE="adult_site")
@@ -108,6 +119,54 @@ func (u *Keyword)Getsexkeyword()(error){
 	}
 
 	return nil
+}
+///get keyword from api
+func (u *Keyword)Getkeywordapi()([]Keyword,error){
+	siteurl,siteerr:=config.String("mainsite::url")
+	if siteerr != nil {
+		return nil,siteerr
+	}
+	siteacc,accerr:=config.String("mainsite::user")
+	if accerr != nil {
+		return nil,accerr
+	}
+	sitepass,passerr:=config.String("mainsite::pass")
+	if passerr != nil {
+		return nil,passerr
+	}
+	url:=siteurl+"/keywords/list";
+	req, err := http.NewRequest("GET",url,nil)
+	if err != nil {
+		return nil,err 
+    }
+	req.Header.Add("Authorization","Basic " + utils.BasicAuth(siteacc,sitepass))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+    resp, err := client.Do(req)
+	if err != nil {
+        // panic(err)
+		return nil,err
+    }
+    defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	adultapires:=Adultapiresp{}
+	// var emailarr []string
+	if jErr := json.Unmarshal(body, &adultapires); jErr != nil {
+		return nil,jErr
+	}
+	if (!adultapires.Status){
+		return nil,errors.New(adultapires.Msg)
+	}
+	var fetkeywordarr []Keyword
+	for _,eval :=range adultapires.Data{
+		keywordModel:=Keyword{Keyword: strings.TrimSpace(eval),
+		
+		}
+		fetkeywordarr=append(fetkeywordarr,keywordModel)
+		u.Savekeyworddb(keywordModel,ADULTSITE)
+	}
+	logs.Info(fetkeywordarr)
+	return fetkeywordarr,nil
 }
 ///read keyword list from json file
 func (u *Keyword)Readkeywordbyfile(localFilepath string)([]Keyword,error){

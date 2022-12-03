@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"strings"
+	"encoding/base64"
 )
 
 func Init(){
@@ -120,3 +121,7 @@ func Gettopdomain(urls string)(string, error){
 func PanicFunc(errorObj error ) {
 	panic(errorObj.Error())
 }
+func BasicAuth(username, password string) string {
+	auth := username + ":" + password
+	return base64.StdEncoding.EncodeToString([]byte(auth))
+  }

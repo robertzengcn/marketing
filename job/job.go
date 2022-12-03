@@ -31,10 +31,19 @@ func InitTask(){
 		
 	 })
 	task.AddTask("tk1", cvtk1)
+
 	cvtk2 := task.NewTask("tk2", "0 0 1 * * *", func(ctx context.Context) error { 
 		logs.Info("start to get adult keywords")
 		KeywordModel:=models.Keyword{}
 		return KeywordModel.Getsexkeyword()
 	})
 	task.AddTask("tk2", cvtk2)
+	//get sex toy keyword
+	cvtk3 := task.NewTask("tk3", "0 30 1 * * *", func(ctx context.Context) error { 
+		logs.Info("start to get sex toy keywords")
+		KeywordModel:=models.Keyword{}
+		_,kerr:=KeywordModel.Getkeywordapi()
+		return kerr
+	})
+	task.AddTask("tk3", cvtk3)
 }

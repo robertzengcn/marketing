@@ -145,3 +145,11 @@ func(c *TestController)Getkeywordbytag(){
 	}
 	c.SuccessJson(kArr)
 }
+func(c *TestController)Getkeywordapi(){
+	keywordModel:=models.Keyword{}
+	_,kerr:=keywordModel.Getkeywordapi()
+	if(kerr!=nil){
+		c.ErrorJson(202212011410152,kerr.Error(),nil)
+	}
+	c.SuccessJson(nil)
+}

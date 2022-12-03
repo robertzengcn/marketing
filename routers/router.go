@@ -50,6 +50,8 @@ func init() {
 		beego.NSRouter("/createtastschedule", &controllers.TestController{}, "post:Createtasksched"),
 		beego.NSRouter("/createdaytask", &controllers.TestController{}, "get:CreatedayTask"),
 		beego.NSRouter("/getkeywordbytag", &controllers.TestController{}, "get:Getkeywordbytag"),
+		beego.NSRouter("/getkeywordapi", &controllers.TestController{}, "get:Getkeywordapi"),
+
 
 
 	)
