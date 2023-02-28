@@ -38,6 +38,20 @@ func (u *AccountToken) GenAccounttoken(account *Account) (token string,err error
 	_, err = o.Insert(&ac)
 	return token,err
 }
+///check account token
+func (u *AccountToken) CheckAccounttoken(token string) (accounttoken *AccountToken,err error){
+	o := orm.NewOrm()
+	accToken := new(AccountToken)
+	now := time.Now()
+	nf:=now.Format("2006-01-02 15:04:05")
+	err=o.QueryTable(accToken).Filter("token_val", token).Filter("token_expired__gt", nf).One(&accounttoken)
+	if(err!=nil){
+		return nil, err
+	}else{
+		return accounttoken,nil
+	}
+
+}
 
 
 

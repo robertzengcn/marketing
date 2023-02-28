@@ -11,6 +11,7 @@ import (
 	"marketing/utils"
 	"fmt"
 	"strings"
+	"marketing/models"
 )
 
 type Controllerreturn interface {
@@ -55,21 +56,47 @@ func (c *BaseController) ErrorJson(code int, msg string, data interface{}) {
 	c.ServeJSON() //对json进行序列化输出
 	c.StopRun()
 }
+///valid bearer token
+func Valid_beartoken(authstr string)(bool){
+	
+	splitToken := strings.Split(authstr, "Bearer ")
+	if(len(splitToken)<2){
+		return false
+	}
+	token:=splitToken[1]
+	accountTokenModel:=models.AccountToken{}
+	atoken,_:=accountTokenModel.CheckAccounttoken(token)
+	if(atoken!=nil){
+		return true
+	}
+	return false
+}
 
 func Filter_user(ctx *context.Context) {
-	s := []string{"/login", "/login/accountlogin","/healthcheck"} //defined url that not need to valid user login
+	s := []string{"/login", 
+	"/login/accountlogin",
+	"/healthcheck",
+	"api/getsobyCam",
+	} //defined url that not need to valid user login
 	// l := logs.GetLogger()
-	// res:=ctx.Input.Session("uid")
-	// l.Println(res)
-	// fmt.Println(reflect.TypeOf(res))
+	//defined basic auth array
+
 	_, ok := ctx.Input.Session("uid").(int64)
 
 	// l.Println(id)
 	// l.Println(ok)
 	if !ok { //user not login
 		if !utils.Contains(s, ctx.Request.RequestURI) {
-			// if ctx.Input.IsAjax() {
+			//check bearer token
+			authstr := ctx.Input.Header("Authorization")
+			if(len(authstr)>0){
+				bres:=Valid_beartoken(authstr)
+				if(bres){
+					return
+				}
+			}
 				jsonData := make(map[string]interface{}, 3)
+				
 				jsonData["status"]=false
 				jsonData["code"] = 403
 				jsonData["msg"] = "You have to login to continue"
@@ -77,10 +104,42 @@ func Filter_user(ctx *context.Context) {
 				returnJSON, _ := json.Marshal(jsonData)
 				ctx.ResponseWriter.Header().Set("Content-Type", "application/json;charset=UTF-8;")
 				ctx.ResponseWriter.Write(returnJSON)
-			// } else {
-			// 	ctx.Redirect(302, "/login")
-			// }
+			
 		}
+	}
+}
+//basic Authorization
+func Filter_basic(ctx *context.Context) {	
+	//get basic auth from header
+	 authstr := ctx.Input.Header("Authorization")
+	 if(len(authstr)<=0){
+		Forbidenreturn(ctx)
+	 }
+	 fres:=Filter_account(authstr)
+	 if(!fres){
+		 Forbidenreturn(ctx)
+	 }
+
+}
+//return forbiden if user not login
+func Forbidenreturn(ctx *context.Context){
+	ctx.ResponseWriter.Header().Set("WWW-Authenticate", `Basic realm="Authorization Required"`)
+	ctx.ResponseWriter.WriteHeader(401)
+	ctx.ResponseWriter.Write([]byte("401 Unauthorized\n"))
+   
+}
+//check account valid
+func Filter_account(authstr string)(bool){
+	autharr := strings.Split(authstr, ":")
+	//check array length
+	if(len(autharr)!=2){
+		return false
+	}
+	apiId,_:=models.DefaultApiauth.GetApiAuth(autharr[1],autharr[2])
+	if(apiId>0){
+		return true
+	}else{
+		return false
 	}
 }
 

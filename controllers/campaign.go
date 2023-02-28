@@ -55,31 +55,18 @@ func (c *CampaignController) ListCampaign() {
 	}
 	c.SuccessJson(campagins)
 }
-// create site api
-// func (c *CampaignController) Createsite(){
-// 	site:= c.GetString("site")
-// 	email:= c.GetString("email")
-	
-// 	campaignId,_:=c.GetInt64("campaigin_id",0)
-// 	if(campaignId<=0){
-// 		c.ErrorJson(20211216154049,"campaign id empty",nil)
-// 	}
-// 	if(!utils.ValidEmail(email)){
-// 		// fmt.Println(c.Lang)
-// 		c.Lang=c.BaseController.Lang
-// 		c.ErrorJson(20211217152054,c.Tr("welcome"),nil)
-// 	}
-// 	camPaign,err:=models.DefaultCampaign.FindCambyid(campaignId)
-// 	if(err!=nil){
-// 		c.ErrorJson(20211216154653,err.Error(),nil)
-// 	}
-// 	siteId,siteErr:=models.DefaultSiteObj.AddSite(camPaign,email,site)
-// 	if(siteErr!=nil){
-// 		c.ErrorJson(20211216155058,siteErr.Error(),nil)
-// 	}
-// 	c.SuccessJson(siteId)
 
-// }
+//get socail account relation with campaign use campaign Id
+func (c *CampaignController) GetSocialAccount() {
+	campaign_id,_ := c.GetInt64("campaign_id",0)
+	
+	socialaccounts,err:=models.DefaultCampaign.GetSocialAccount(campaign_id)
+	if(err!=nil){
+		c.ErrorJson(20211208153839,err.Error(),nil)
+
+	}
+	c.SuccessJson(socialaccounts)
+}
 
 
 

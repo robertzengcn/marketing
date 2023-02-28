@@ -39,9 +39,12 @@ func main() {
 			AllowCredentials: true,
 		}))
 		}
+
 	beego.InsertFilter("/*", beego.BeforeExec, controllers.Filter_user)
-	// utils.InitTask()
-	// task.StartTask()
+	beego.InsertFilter("/api/*", beego.BeforeExec, controllers.Filter_basic)
+
+	//beego.InsertFilter("*", beego.BeforeRouter, controllers.Allow_origins)
+
 	// defer task.StopTask()
 
 	f := &logs.PatternLogFormatter{

@@ -4,7 +4,7 @@ import (
 	// beego "github.com/beego/beego/v2/server/web"
 	"marketing/models"
 	"github.com/beego/i18n"
-	// "github.com/beego/beego/v2/core/logs"
+	//"github.com/beego/beego/v2/core/logs"
 )
 type AccountResponse struct{
 	// Id int64
@@ -33,7 +33,8 @@ func (c *AccountController) Validaccount() {
 	}
 	// l := logs.GetLogger()
    
-	// l.Println("33333")	
+	// l.Println(username)	
+	// l.Println(pass)	
 	// l.Println(c.Tr("welcome"))
 	// l.Println("44444")
 	accountModel:=models.Account{}
@@ -58,6 +59,22 @@ func (c *AccountController) Validaccount() {
 
 		c.SuccessJson(accountRes)
 	}
+	
+}
+///echo user info by session
+func (c *AccountController)Accountinfo(){
+	uid := c.GetSession("uid")
+	if uid == nil {
+		c.ErrorJson(202302270948,c.Tr("user_not_login"),nil)
+	}
+	accountModel:=models.Account{}
+	//convert uid to int64	
+	uidint64:=uid.(int64)
+	acc,aerr:=accountModel.GetAccountbyid(uidint64)
+	if aerr !=nil {
+		c.ErrorJson(202302270950,aerr.Error(),nil)
+	}
+	c.SuccessJson(acc)
 }
 
 
