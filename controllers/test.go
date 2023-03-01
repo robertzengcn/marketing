@@ -153,3 +153,20 @@ func(c *TestController)Getkeywordapi(){
 	}
 	c.SuccessJson(nil)
 }
+//load csv file api
+func(c *TestController)Loadkeywordapi(){
+	//campaign_id, _ := c.GetInt64("campaign_id")	
+	file := c.GetString("filepath")
+	keywordModel:=models.Keyword{}
+	keywordlist,kerr:=keywordModel.CreateRescsv(file)
+	if(kerr!=nil){
+		c.ErrorJson(202303011019,kerr.Error(),nil)
+	}
+	for _,v:=range keywordlist{
+		// v=campaign_id
+		_,kerr:=keywordModel.Savekeyworddb(v,v.Tag)
+		logs.Error(kerr)
+	}
+	c.SuccessJson(nil)
+
+}

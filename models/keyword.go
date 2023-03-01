@@ -218,5 +218,27 @@ func (u *Keyword)Getkeywordbytag(tagsArr []string,num int)([]*Keyword,error){
 
 	return keywordArrs,nil
 }
+//create keyword list from csv data result
+func (u *Keyword)CreateRescsv(filepath string)([]Keyword,error){
+	data,err:=utils.Csvfilehandle(filepath)	
+	if(err!=nil){
+		return nil,err
+	}
+	var keywordArrs []Keyword
+	for i, line := range data {
+        if i > 0 { // omit header line
+            var rec Keyword
+            for j, field := range line {
+                if j == 0 {
+                    rec.Keyword = field
+                } else if j == 1 {
+                    rec.Tag = field
+                }
+            }
+            keywordArrs = append(keywordArrs, rec)
+        }
+    }
+    return keywordArrs,nil
+}
 
 
