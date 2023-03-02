@@ -36,9 +36,12 @@ func init() {
 	beego.Router("/emailtpl/create", &controllers.EmailtplController{}, "post:CreateEmailtpl")
 	beego.Router("/emailservice/add", &controllers.EmailserviceController{}, "post:Addemailservice")
 	beego.Router("/schedule/add", &controllers.ScheduleController{}, "post:CreateSchedule")
-	
+
 	// beego.Router("/welcome", &controllers.CampaignController{}, "get:Welcome")
 	beego.Router("/healthcheck", &controllers.MainController{}, "get:Healthcheck")
+	beego.Router("/social/create", &controllers.SocialController{}, "post:CreateSocialAccount")
+	beego.Router("/user/info", &controllers.AccountController{}, "get:Accountinfo")
+
 	ns := beego.NewNamespace("/test",
 		beego.NSInclude(
 			&controllers.TestController{},
@@ -51,9 +54,18 @@ func init() {
 		beego.NSRouter("/createdaytask", &controllers.TestController{}, "get:CreatedayTask"),
 		beego.NSRouter("/getkeywordbytag", &controllers.TestController{}, "get:Getkeywordbytag"),
 		beego.NSRouter("/getkeywordapi", &controllers.TestController{}, "get:Getkeywordapi"),
-
-
-
+		beego.NSRouter("/getkeywordapi", &controllers.TestController{}, "get:Getkeywordapi"),
+		beego.NSRouter("/importkeyword", &controllers.TestController{}, "post:Loadkeywordapi"),
+	
 	)
 	beego.AddNamespace(ns)
+	api := beego.NewNamespace("/api",
+		beego.NSInclude(
+			&controllers.CampaignController{},
+		),
+		//get socoial account by campaign id
+		beego.NSRouter("/getsobyCam", &controllers.CampaignController{}, "get:GetSocialAccount"),
+	)
+	beego.AddNamespace(api)
+
 }

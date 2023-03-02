@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"strings"
 	"encoding/base64"
+	"encoding/csv"
 )
 
 func Init(){
@@ -124,4 +125,26 @@ func PanicFunc(errorObj error ) {
 func BasicAuth(username, password string) string {
 	auth := username + ":" + password
 	return base64.StdEncoding.EncodeToString([]byte(auth))
-  }
+}
+///read data from csv file
+func Csvfilehandle(filepath string)([][]string,error){
+	    // open file
+		f, err := os.Open(filepath)
+		
+
+		if err != nil {
+			return nil, err
+		}
+	
+		// remember to close the file at the end of the program
+		defer f.Close()
+		
+	
+		// read csv values using csv.Reader
+		csvReader := csv.NewReader(f)
+		data, err := csvReader.ReadAll()
+		if err != nil {
+			return nil, err
+		}
+		return data,err
+}

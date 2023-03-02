@@ -8,7 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"time"
 	"marketing/utils"
-	"github.com/beego/beego/v2/core/logs"
+	//"github.com/beego/beego/v2/core/logs"
 )
 
 type Account struct {
@@ -61,12 +61,12 @@ func (u *Account)IndexAllAccount(start int,number int) (accounts []Account, err 
 }
 
 //按照id查询
-func (u *Account)Selectbyid(id int) (account Account, err error) {
-	o := orm.NewOrm()
-	var us Account
-	errs := o.Raw("SELECT id, name,email,created,updated FROM gotest_account WHERE id = ?", id).QueryRow(&us)
-	return us, errs
-}
+// func (u *Account)Selectbyid(id int) (account Account, err error) {
+// 	o := orm.NewOrm()
+// 	var us Account
+// 	errs := o.Raw("SELECT id, name,email,created,updated FROM gotest_account WHERE id = ?", id).QueryRow(&us)
+// 	return us, errs
+// }
 
 //query all rows
 func (u *Account)SelectAccountlist() (accounts []Account, err error) {
@@ -90,9 +90,9 @@ func (u *Account)AddAccount(username string, email string,password string) (id i
 ///check is account valid
 func (u *Account)Validaccount(username string, pass string) (account Account, err error) {
 	o := orm.NewOrm()
-	l := logs.GetLogger()
+	//l := logs.GetLogger()
 	epass:=u.EncryptionPass(pass)
-	l.Println(epass)
+	//l.Println(epass)
 	qs := o.QueryTable(new(Account))
 	if(utils.ValidEmail(username)){
 		err =qs.Filter("email", username).Filter("password", epass).One(&account,"Id","Name","Email")
@@ -107,4 +107,11 @@ func (u *Account)Validaccount(username string, pass string) (account Account, er
 ///encryption user password
 func (u *Account)EncryptionPass(pass string)(string){
 	return utils.Md5V2(pass)
+}
+///get account by uid
+func (u *Account)GetAccountbyid(uid int64) (account Account, err error) {
+	o := orm.NewOrm()
+	account = Account{Id: uid}
+	err=o.Read(&account,"Id","Name","Email")
+	return account,err	
 }
