@@ -54,6 +54,9 @@ func init() {
 		beego.NSRouter("/createdaytask", &controllers.TestController{}, "get:CreatedayTask"),
 		beego.NSRouter("/getkeywordbytag", &controllers.TestController{}, "get:Getkeywordbytag"),
 		beego.NSRouter("/getkeywordapi", &controllers.TestController{}, "get:Getkeywordapi"),
+		beego.NSRouter("/getkeywordapi", &controllers.TestController{}, "get:Getkeywordapi"),
+		beego.NSRouter("/importkeyword", &controllers.TestController{}, "post:Loadkeywordapi"),
+	
 	)
 	beego.AddNamespace(ns)
 	api := beego.NewNamespace("/api",

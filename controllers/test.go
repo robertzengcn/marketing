@@ -165,7 +165,9 @@ func(c *TestController)Loadkeywordapi(){
 	for _,v:=range keywordlist{
 		// v=campaign_id
 		_,kerr:=keywordModel.Savekeyworddb(v,v.Tag)
+		if(kerr!=nil){
 		logs.Error(kerr)
+	}
 	}
 	c.SuccessJson(nil)
 
