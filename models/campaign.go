@@ -44,7 +44,7 @@ func (u *Campaign)CreateCampaign(username string) (id int64, err error) {
 func (u *Campaign)ListCampaign(start int,limitNum int)([]Campaign,error){
 	o := orm.NewOrm()
 	var cam []Campaign
-	count, e := o.QueryTable(new(Campaign)).Limit(limitNum,start).All(&cam, "campaign_id", "campaign_name")
+	count, e := o.QueryTable(new(Campaign)).Limit(limitNum,start).All(&cam, "campaign_id", "campaign_name","tags")
 	if e != nil {
 		return nil, e
 	}
