@@ -53,3 +53,26 @@ func (c *ScheduleController) CreateSchedule() {
 	}
 	c.SuccessJson(sresReu)
 }
+//list schedule api
+func (c *ScheduleController) ListSchedule(){
+	limitVar,limitSerr:=c.GetInt("limit",25)
+	if(limitSerr!=nil){
+		c.ErrorJson(20230306144560,"get limit error",nil)
+	}
+	offsetVar,offsetSerr:=c.GetInt("offset",0)
+	if(offsetSerr!=nil){
+		c.ErrorJson(20230306144665,"get offset error",nil)
+	}
+	if(limitVar<1){
+		limitVar=25
+	}
+	if(offsetVar<1){
+		offsetVar=0
+	}
+	scheduleModel:=models.Schedule{}
+	scheduleList,err:=scheduleModel.ScheduleList(limitVar,offsetVar)
+	if(err!=nil){
+		c.ErrorJson(20230306144775,"list schedule error",nil)
+	}
+	c.SuccessJson(scheduleList)
+}

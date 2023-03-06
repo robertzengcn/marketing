@@ -123,6 +123,17 @@ func (u *Schedule)Createtask(scheduleId int64)(int64,error){
 	}
 	return taskId,nil
 }
+///show schedule list
+func (u *Schedule)ScheduleList(limt int, offet int)([]Schedule,error){
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+	var scheduleList []Schedule
+	_, err := qs.Limit(limt, offet).All(&scheduleList)
+	if err != nil {
+		return nil, err
+	}
+	return scheduleList, err
+}
 
 
 
