@@ -119,8 +119,9 @@ func (c *TestController)Createtasksched() {
 	c.SuccessJson(sId)
 }
 func(c *TestController)CreatedayTask(){
+	tp := c.GetString("type")
 	scheduleModel:=models.Schedule{}
-		schVar, schErr:=scheduleModel.Findonebycyc("d")
+		schVar, schErr:=scheduleModel.Findonebycyc(tp)
 		if(schErr!=nil){
 			logs.Error(schErr)	
 			c.ErrorJson(202211191514126,schErr.Error(),nil)

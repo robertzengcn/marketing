@@ -52,7 +52,7 @@ func init() {
 		beego.NSRouter("/checkemailsend", &controllers.TestController{}, "post:Checkemailsend"),
 		beego.NSRouter("/testgetadultkeyword", &controllers.TestController{}, "post:Getadultkeyword"),
 		beego.NSRouter("/createtastschedule", &controllers.TestController{}, "post:Createtasksched"),
-		beego.NSRouter("/createdaytask", &controllers.TestController{}, "get:CreatedayTask"),
+		beego.NSRouter("/createdaytask", &controllers.TestController{}, "post:CreatedayTask"),
 		beego.NSRouter("/getkeywordbytag", &controllers.TestController{}, "get:Getkeywordbytag"),
 		beego.NSRouter("/getkeywordapi", &controllers.TestController{}, "get:Getkeywordapi"),
 		beego.NSRouter("/getkeywordapi", &controllers.TestController{}, "get:Getkeywordapi"),
