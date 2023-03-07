@@ -16,9 +16,10 @@ type TestController struct {
 }
 ///test save search request
 func(c *TestController) Savesearchrequest(){
+	filenameReq:=c.GetString("filename")
 	_, file, _, _ := runtime.Caller(0)
 	apppath, _ := filepath.Abs(filepath.Dir(filepath.Join(file, ".." + string(filepath.Separator))))
-	filename:=apppath+"/tests/20220509-threaded-results.json"
+	filename:=apppath+"/tests/"+filenameReq
 	res,rerr:=models.DefaultTask.Readfile(filename)
 	if(rerr!=nil){
 		panic(rerr.Error())	

@@ -148,3 +148,8 @@ func Csvfilehandle(filepath string)([][]string,error){
 		}
 		return data,err
 }
+//check string is url
+func IsUrl(str string) bool {
+	u, err := url.Parse(str)
+	return err == nil && u.Scheme != "" && u.Host != ""
+}

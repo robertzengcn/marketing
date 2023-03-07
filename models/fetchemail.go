@@ -160,7 +160,7 @@ func (u *FetchEmail)Sendquerycom(url string,runid int64,wg *sync.WaitGroup,sendE
 	json.Unmarshal(byteValue, &fetcharr)
 	logs.Info(fetcharr)
 	if(len(fetcharr)<1){
-		return errors.New("now find email")
+		return errors.New("not find email")
 	}
 	mailModel:=MailLog{}
 	emailser := EmailService{}

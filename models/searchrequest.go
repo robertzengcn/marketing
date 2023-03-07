@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"github.com/beego/beego/v2/client/orm"
+	"marketing/utils"
 )
 
 type SearchRequest struct {
@@ -71,6 +72,10 @@ func(u *SearchRequest)SavedataDb(searchreq *SearchRequest)(int64,error){
 		serlink.Domain=ritem.Domain
 		serlink.Link=ritem.Link
 		serlink.SearchrequestId=searchreq
+		// check link is Url
+		 if(!utils.IsUrl(serlink.Link)){
+			continue;
+		 }
 		_,lerr:=serlink.SavedataDb(&serlink)
 		if(lerr!=nil){
 			return 0,lerr

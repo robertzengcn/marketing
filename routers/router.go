@@ -47,7 +47,7 @@ func init() {
 		beego.NSInclude(
 			&controllers.TestController{},
 		),
-		beego.NSRouter("/savesearchreq", &controllers.TestController{}, "get:Savesearchrequest"),
+		beego.NSRouter("/savesearchreq", &controllers.TestController{}, "post:Savesearchrequest"),
 		beego.NSRouter("/testsendemail", &controllers.TestController{}, "post:Testsendemail"),
 		beego.NSRouter("/checkemailsend", &controllers.TestController{}, "post:Checkemailsend"),
 		beego.NSRouter("/testgetadultkeyword", &controllers.TestController{}, "post:Getadultkeyword"),

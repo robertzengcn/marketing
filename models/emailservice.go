@@ -104,10 +104,16 @@ func (u *EmailService) Sendemailtsl(emailService *EmailService, toList []string,
 	}
 	
 	_, err = w.Write([]byte(msg))
+	//update send time log
+	u.Updatesendtime(emailService.Id)
+
 	if err != nil {
+		//disable email account
+		u.Disableemail(emailService.Id)
 		logs.Error(err)
 		return err
 	}
+
 
 	err = w.Close()
 	if err != nil {
@@ -115,7 +121,7 @@ func (u *EmailService) Sendemailtsl(emailService *EmailService, toList []string,
 		return err
 	}
 	c.Quit()
-	u.Updatesendtime(emailService.Id)
+	
 	return nil
 }
 
@@ -176,6 +182,21 @@ func (u *EmailService) Updatesendtime(sid int64) (int64, error) {
 	return qs.Filter("id", sid).Update(orm.Params{
 		"usetime": currentTime.Format("2006.01.02 15:04:05"),
 	})
+}
+//disable email account
+func (u *EmailService) Disableemail(sid int64) (error) {
+	o := orm.NewOrm()
+	emailser:=EmailService{Id:sid}
+	if o.Read(&emailser) == nil {
+		emailser.Status=0
+		if _, err := o.Update(&emailser); 
+		err != nil {
+			return err
+		}else{
+			return nil
+		}
+	}
+
 }
 
 ///get one email service by id

@@ -137,122 +137,20 @@ func (u *Task) Starttask(taskId int64) {
 		return
 	}
 
-	TaskdetailModel := TaskDetail{}
-	taskdetailVar, terr := TaskdetailModel.Gettaskdetail(taskId)
-	if terr != nil {
-		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: terr})
-		return
-	}
-	if len(taskdetailVar.Taskkeyword) <= 0 {
-		// return errors.New("keyword empty")
-
-		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: errors.New("keyword empty")})
-	}
-
-	gHost, gherr := beego.AppConfig.String("googlescrape::host")
-	if gherr != nil {
-		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: gherr})
-		return
-	}
-	gPort, gperr := beego.AppConfig.String("googlescrape::port")
-	if gperr != nil {
-		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: gperr})
-		return
-	}
-	gUser, gerr := beego.AppConfig.String("googlescrape::user")
-	if gerr != nil {
-		// logs.Error(gerr)
-		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: gerr})
-		return
-	}
-	gPass, gperr := beego.AppConfig.String("googlescrape::pass")
-	if gperr != nil {
-		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: gperr})
-		return
-	}
-	conn, cerr := utils.Connect(gHost+":"+gPort, gUser, gPass)
-	if cerr != nil {
-		// logs.Error(cerr)
-		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: cerr})
-		return
-	}
-	workNum:=beego.AppConfig.DefaultString("googlescrape::worrkernum","1")
-	// out := make(chan []byte)
-	// errs := make(chan error)
-
-	//create file over ssh
-	// filename:=strconv.FormatInt(taskdetailVar.Id,10)
-	keywordfile := "/app/GoogleScraper/" + taskdetailVar.TaskFilename + ".txt"
-	createfileCmd := "echo $'" + taskdetailVar.Taskkeyword + "' > " + keywordfile
-
-	// cmdArgs := []string{"-h"}
-	logs.Info(createfileCmd)
-	output, err := conn.SendCommands(createfileCmd)
-	u.Handletaskerror(&Result{Runid: runid, Output: string(output), Err: err})
-	if err != nil {
-		logs.Error(err)
-		return
-	}
-	
-	// out <-output
-	// close(out)
-	outputFilename := taskdetailVar.TaskFilename + "-output.json"
-	outputFile := "/app/GoogleScraper/" + outputFilename
-	logs.Info(outputFile)
-	nunPage := "10"
-	// workNum := "2"
-	keywordCom := "GoogleScraper -m selenium --sel-browser chrome --browser-mode headless --keyword-file " + keywordfile + " --num-workers " + workNum + " --output-filename " + outputFile + " --num-pages-for-keyword " + nunPage + " -v debug"
-
-	logs.Info(keywordCom)
-	kout, kerr := conn.SendCommands(keywordCom)
-	logs.Info(string(kout))
-	// out<-kout
-	if kerr != nil {
-		logs.Error(kerr)
-		u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: kerr})
-		return
-	}
-	//read ssh file
-	sftpClient, sftperr := conn.Createsfptclient()
-	if sftperr != nil {
-		logs.Error(sftperr)
-		u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: sftperr})
-		return
-	}
-	defer sftpClient.Close()
-	_, file, _, _ := runtime.Caller(0)
-	apppath, _ := filepath.Abs(filepath.Dir(filepath.Join(file, ".."+string(filepath.Separator))))
-	outPath:=apppath + "/output/"
-	if _, err := os.Stat(outPath); os.IsNotExist(err) {
-		err := os.Mkdir(outPath, 0755)
-		if(err!=nil){
-			logs.Error(err)
-			u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: err})
-			return
-		}
-	}
-	localFilepath := apppath + "/output/" + outputFilename
-	derr := conn.Downloadfile(sftpClient, outputFile, localFilepath)
-	if derr != nil {
-		logs.Error(derr)
-		u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: derr})
+	serequestarr,scerr:=u.Searchgoogle(taskId,runid)
+	if scerr != nil {
+		logs.Error(scerr)
+		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: scerr})
 		return
 	}
 
-	serequestarr, rerr := u.Readfile(localFilepath)
-	if rerr != nil {
-		logs.Error(rerr)
-		u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: rerr})
-		return
-	}
-	// logs.Info(string(rout))
-	// we initialize our Users array
 
 	logs.Info(serequestarr)
+
 	searchreqModel := SearchRequest{}
 	serr := searchreqModel.Savesrlist(serequestarr, runid)
 	if serr != nil {
-		logs.Error(rerr)
+		logs.Error(serr)
 		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: serr})
 		return
 	}
@@ -264,8 +162,150 @@ func (u *Task) Starttask(taskId int64) {
 	}
 	logs.Info("task end")
 	// u.Sendemail(runid)
-	
+}
+//search keywords on google
+func (u *Task)Searchgoogle(taskId int64,runid int64)([]SearchRequest, error){
+	TaskdetailModel := TaskDetail{}
+	taskdetailVar, terr := TaskdetailModel.Gettaskdetail(taskId)
+	if terr != nil {
+		//u.Handletaskerror(&Result{Runid: runid, Output: "", Err: terr})
+		return nil, terr
+	}
+	if len(taskdetailVar.Taskkeyword) <= 0 {
+		// return errors.New("keyword empty")
+		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: errors.New("keyword empty")})
+	}
 
+	gHost, gherr := beego.AppConfig.String("googlescrape::host")
+	if gherr != nil {
+		//u.Handletaskerror(&Result{Runid: runid, Output: "", Err: gherr})
+		return nil, gherr
+	}
+	gPort, gperr := beego.AppConfig.String("googlescrape::port")
+	if gperr != nil {
+		//u.Handletaskerror(&Result{Runid: runid, Output: "", Err: gperr})
+		return nil, gperr
+	}
+	gUser, gerr := beego.AppConfig.String("googlescrape::user")
+	if gerr != nil {
+		// logs.Error(gerr)
+		//u.Handletaskerror(&Result{Runid: runid, Output: "", Err: gerr})
+		return nil, gerr
+	}
+	gPass, gperr := beego.AppConfig.String("googlescrape::pass")
+	if gperr != nil {
+		//u.Handletaskerror(&Result{Runid: runid, Output: "", Err: gperr})
+		return nil, gperr
+	}
+	conn, cerr := utils.Connect(gHost+":"+gPort, gUser, gPass)
+	if cerr != nil {
+		// logs.Error(cerr)
+		//u.Handletaskerror(&Result{Runid: runid, Output: "", Err: cerr})
+		return nil,cerr
+	}
+	workNum:=beego.AppConfig.DefaultString("googlescrape::worrkernum","1")
+	// out := make(chan []byte)
+
+	keywordfile := "/app/GoogleScraper/" + taskdetailVar.TaskFilename + ".txt"
+	createfileCmd := "echo $'" + taskdetailVar.Taskkeyword + "' > " + keywordfile
+
+	// cmdArgs := []string{"-h"}
+	logs.Info(createfileCmd)
+	output, err := conn.SendCommands(createfileCmd)
+	u.Handletaskerror(&Result{Runid: runid, Output: string(output), Err: err})
+	if err != nil {
+		//logs.Error(err)
+		return nil,err
+	}
+
+	outputFilename := taskdetailVar.TaskFilename + "-output.json"
+	outputFile := "/app/GoogleScraper/" + outputFilename
+	logs.Info(outputFile)
+	nunPage := "10"
+	// workNum := "2"
+	keywordCom := "GoogleScraper -m selenium --sel-browser chrome --browser-mode headless --keyword-file " + keywordfile + " --num-workers " + workNum + " --output-filename " + outputFile + " --num-pages-for-keyword " + nunPage + " -v debug"
+
+	//logs.Info(keywordCom)
+	kout, kerr := conn.SendCommands(keywordCom)
+	logs.Info(string(kout))
+	// out<-kout
+	if kerr != nil {
+		logs.Error(kerr)
+		//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: kerr})
+		return nil, kerr
+	}
+	//read ssh file
+	sftpClient, sftperr := conn.Createsfptclient()
+	if sftperr != nil {
+		logs.Error(sftperr)
+		//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: sftperr})
+		return nil,sftperr
+	}
+	defer sftpClient.Close()
+	_, file, _, _ := runtime.Caller(0)
+	apppath, _ := filepath.Abs(filepath.Dir(filepath.Join(file, ".."+string(filepath.Separator))))
+	outPath:=apppath + "/output/"
+	if _, err := os.Stat(outPath); os.IsNotExist(err) {
+		err := os.Mkdir(outPath, 0755)
+		if(err!=nil){
+			logs.Error(err)
+			//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: err})
+			return nil,err
+		}
+	}
+	localFilepath := apppath + "/output/" + outputFilename
+	derr := conn.Downloadfile(sftpClient, outputFile, localFilepath)
+	if derr != nil {
+		logs.Error(derr)
+		//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: derr})
+		return nil,derr
+	}
+
+	serequestarr, rerr := u.Readfile(localFilepath)
+	if rerr != nil {
+		logs.Error(rerr)
+		u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: rerr})
+		return	nil,rerr
+	}
+	return serequestarr,nil
+}
+
+///start a task
+func (u *Task) StartBingtask(taskId int64) {
+	u.Updatetaskstatus(taskId, 3)
+	defer u.Updatetaskstatus(taskId, 4)
+	taskrunModel := TaskRun{}
+	runid, runErr := taskrunModel.CreateRun(taskId)
+	if runErr != nil {
+		logs.Error(runErr)
+		return
+	}
+
+	serequestarr,scerr:=u.Searchgoogle(taskId,runid)
+	if scerr != nil {
+		logs.Error(scerr)
+		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: scerr})
+		return
+	}
+
+
+	logs.Info(serequestarr)
+
+	searchreqModel := SearchRequest{}
+	serr := searchreqModel.Savesrlist(serequestarr, runid)
+	if serr != nil {
+		logs.Error(serr)
+		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: serr})
+		return
+	}
+	logs.Info("start fetch email")
+	fetchModel := FetchEmail{}
+	fErr := fetchModel.Fetchtaskemail(runid)
+	if fErr != nil {
+		logs.Error(fErr)
+	}
+	logs.Info("task end")
+	// u.Sendemail(runid)
 }
 
 ///handle error during run task
