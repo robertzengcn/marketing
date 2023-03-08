@@ -144,24 +144,34 @@ func (u *Task) Starttask(taskId int64) {
 		return
 	}
 
-
-	logs.Info(serequestarr)
-
+	//logs.Info(serequestarr)
+	saerr:=u.SaveSearchreq(serequestarr,runid)
+	if saerr != nil {
+		logs.Error(saerr)
+		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: saerr})
+		return
+	}
+	
+	logs.Info("task end")
+	// u.Sendemail(runid)
+}
+//save search requese to db and fetch email
+func (u *Task)SaveSearchreq(serequestarr []SearchRequest,runid int64)(error){
 	searchreqModel := SearchRequest{}
 	serr := searchreqModel.Savesrlist(serequestarr, runid)
 	if serr != nil {
 		logs.Error(serr)
-		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: serr})
-		return
+		//u.Handletaskerror(&Result{Runid: runid, Output: "", Err: serr})
+		return serr
 	}
 	logs.Info("start fetch email")
 	fetchModel := FetchEmail{}
 	fErr := fetchModel.Fetchtaskemail(runid)
 	if fErr != nil {
 		logs.Error(fErr)
+		return fErr		
 	}
-	logs.Info("task end")
-	// u.Sendemail(runid)
+	return nil
 }
 //search keywords on google
 func (u *Task)Searchgoogle(taskId int64,runid int64)([]SearchRequest, error){

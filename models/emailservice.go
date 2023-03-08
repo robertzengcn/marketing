@@ -196,7 +196,7 @@ func (u *EmailService) Disableemail(sid int64) (error) {
 			return nil
 		}
 	}
-
+	return errors.New("not found")
 }
 
 ///get one email service by id

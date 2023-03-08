@@ -62,6 +62,7 @@ func (c *TaskController) UpdateTaskstatus() {
 	task_id, _ := c.GetInt64("task_id")
 	TaskModel := models.Task{}
 	if(status_id==3){
+		//start search on google
 	go TaskModel.Starttask(task_id)
 	}
 	// terr := TaskModel.Updatetaskstatus(task_id, status_id)
