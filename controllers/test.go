@@ -121,6 +121,7 @@ func (c *TestController)Createtasksched() {
 }
 func(c *TestController)CreatedayTask(){
 	tp := c.GetString("type")
+	sin := c.GetString("seachenginer","google")
 	scheduleModel:=models.Schedule{}
 		schVar, schErr:=scheduleModel.Findonebycyc(tp)
 		if(schErr!=nil){
@@ -133,7 +134,9 @@ func(c *TestController)CreatedayTask(){
 			c.ErrorJson(202211191514131,staerr.Error(),nil)
 		}
 		TaskModel:=models.Task{}
-		go TaskModel.Starttask(staId)
+		
+		go TaskModel.Starttask(staId,sin)
+		
 		c.SuccessJson(staId)
 }
 

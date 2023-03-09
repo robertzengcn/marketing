@@ -60,10 +60,11 @@ func (c *TaskController) CreateTask() {
 func (c *TaskController) UpdateTaskstatus() {
 	status_id, _ := c.GetInt64("status_id")
 	task_id, _ := c.GetInt64("task_id")
+	searchenger := c.GetString("searchenger","google")
 	TaskModel := models.Task{}
 	if(status_id==3){
 		//start search on google
-	go TaskModel.Starttask(task_id)
+	go TaskModel.Starttask(task_id,searchenger)
 	}
 	// terr := TaskModel.Updatetaskstatus(task_id, status_id)
 	// if terr != nil {

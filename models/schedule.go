@@ -61,6 +61,18 @@ func (u *Schedule)Findonebycyc(cycle string)(*Schedule,error){
 	return &scheduleVar,nil
 
 }
+//find all schedule by cycle
+func (u *Schedule)Findallschedule(cyc string)([]Schedule,error){
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+	var scheduleList []Schedule
+	_, err := qs.Filter("cycle",cyc).Filter("status",1).All(&scheduleList)
+	if err != nil {
+		return nil, err
+	}
+	return scheduleList, err
+}
+
 
 ///create task in schedule
 func (u *Schedule)Createtask(scheduleId int64)(int64,error){

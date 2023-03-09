@@ -13,22 +13,22 @@ import (
 	"github.com/beego/beego/v2/core/logs"
 	"github.com/beego/beego/v2/core/validation"
 	beego "github.com/beego/beego/v2/server/web"
+	"os"
 	"path/filepath"
 	"runtime"
-	"os"
 	// "math/rand"
 )
 
 var DefaultTask *Task
 
 type Task struct {
-	Id          int64       `orm:"pk;auto"`
-	TaskName    string      `orm:"size(150)" valid:"Required"`
-	TaskStatus  *TaskStatus `orm:"rel(fk);on_delete(do_nothing)"`
+	Id         int64       `orm:"pk;auto"`
+	TaskName   string      `orm:"size(150)" valid:"Required"`
+	TaskStatus *TaskStatus `orm:"rel(fk);on_delete(do_nothing)"`
 	// EmailTpl    *EmailTpl   `orm:"rel(fk);on_delete(do_nothing)" valid:"Required;"`
-	CampaignId  *Campaign   `orm:"rel(fk);on_delete(do_nothing)" valid:"Required;"`
-	CreatedTime time.Time   `orm:"null;auto_now_add;type(datetime)"`
-	UpdateTime  time.Time   `orm:"null;auto_now;type(datetime)"`
+	CampaignId  *Campaign `orm:"rel(fk);on_delete(do_nothing)" valid:"Required;"`
+	CreatedTime time.Time `orm:"null;auto_now_add;type(datetime)"`
+	UpdateTime  time.Time `orm:"null;auto_now;type(datetime)"`
 }
 
 func (u *Task) TableName() string {
@@ -127,7 +127,7 @@ func (u *Task) GetOne(taskId int64) (*Task, error) {
 }
 
 ///start a task
-func (u *Task) Starttask(taskId int64) {
+func (u *Task) Starttask(taskId int64,searchenginer string) {
 	u.Updatetaskstatus(taskId, 3)
 	defer u.Updatetaskstatus(taskId, 4)
 	taskrunModel := TaskRun{}
@@ -137,7 +137,7 @@ func (u *Task) Starttask(taskId int64) {
 		return
 	}
 
-	serequestarr,scerr:=u.Searchgoogle(taskId,runid)
+	serequestarr, scerr := u.Searchgoogle(taskId, runid,searchenginer)
 	if scerr != nil {
 		logs.Error(scerr)
 		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: scerr})
@@ -145,18 +145,19 @@ func (u *Task) Starttask(taskId int64) {
 	}
 
 	//logs.Info(serequestarr)
-	saerr:=u.SaveSearchreq(serequestarr,runid)
+	saerr := u.SaveSearchreq(serequestarr, runid)
 	if saerr != nil {
 		logs.Error(saerr)
 		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: saerr})
 		return
 	}
-	
+
 	logs.Info("task end")
 	// u.Sendemail(runid)
 }
+
 //save search requese to db and fetch email
-func (u *Task)SaveSearchreq(serequestarr []SearchRequest,runid int64)(error){
+func (u *Task) SaveSearchreq(serequestarr []SearchRequest, runid int64) error {
 	searchreqModel := SearchRequest{}
 	serr := searchreqModel.Savesrlist(serequestarr, runid)
 	if serr != nil {
@@ -169,12 +170,13 @@ func (u *Task)SaveSearchreq(serequestarr []SearchRequest,runid int64)(error){
 	fErr := fetchModel.Fetchtaskemail(runid)
 	if fErr != nil {
 		logs.Error(fErr)
-		return fErr		
+		return fErr
 	}
 	return nil
 }
+
 //search keywords on google
-func (u *Task)Searchgoogle(taskId int64,runid int64)([]SearchRequest, error){
+func (u *Task) Searchgoogle(taskId int64, runid int64, searchenginer string) ([]SearchRequest, error) {
 	TaskdetailModel := TaskDetail{}
 	taskdetailVar, terr := TaskdetailModel.Gettaskdetail(taskId)
 	if terr != nil {
@@ -186,6 +188,87 @@ func (u *Task)Searchgoogle(taskId int64,runid int64)([]SearchRequest, error){
 		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: errors.New("keyword empty")})
 	}
 
+	//get host connect
+	conn, cerr := u.Gethostconnect()
+	if cerr != nil {
+		// logs.Error(cerr)
+		//u.Handletaskerror(&Result{Runid: runid, Output: "", Err: cerr})
+		return nil, cerr
+	}
+	workNum := beego.AppConfig.DefaultString("googlescrape::worrkernum", "1")
+	// out := make(chan []byte)
+
+	keywordfile := "/app/GoogleScraper/" + taskdetailVar.TaskFilename + ".txt"
+	
+	createfileCmd := "echo $'" + taskdetailVar.Taskkeyword + "' > " + keywordfile
+	
+	// cmdArgs := []string{"-h"}
+	logs.Info(createfileCmd)
+	output, err := conn.SendCommands(createfileCmd)
+	u.Handletaskerror(&Result{Runid: runid, Output: string(output), Err: err})
+	if err != nil {
+		//logs.Error(err)
+		return nil, err
+	}
+
+	outputFilename := taskdetailVar.TaskFilename + "-output.json"
+	outputFile := "/app/GoogleScraper/" + outputFilename
+	logs.Info(outputFile)
+	nunPage := "10"
+	// workNum := "2"
+	keywordCom := "GoogleScraper -m selenium --sel-browser chrome --browser-mode headless --keyword-file " + keywordfile + " --num-workers " + workNum + " --output-filename " + outputFile + " --num-pages-for-keyword " + nunPage + " -v debug"
+	if(searchenginer=="bing"){
+		keywordCom+=" --search-engines \"bing\""
+	}
+	//logs.Info(keywordCom)
+	kout, kerr := conn.SendCommands(keywordCom)
+	logs.Info(string(kout))
+	// out<-kout
+	if kerr != nil {
+		logs.Error(kerr)
+		//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: kerr})
+		return nil, kerr
+	}
+	//read ssh file
+	sftpClient, sftperr := conn.Createsfptclient()
+	if sftperr != nil {
+		logs.Error(sftperr)
+		//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: sftperr})
+		return nil, sftperr
+	}
+	defer sftpClient.Close()
+	_, file, _, _ := runtime.Caller(0)
+	apppath, _ := filepath.Abs(filepath.Dir(filepath.Join(file, ".."+string(filepath.Separator))))
+	outPath := apppath + "/output/"
+	if _, err := os.Stat(outPath); os.IsNotExist(err) {
+		err := os.Mkdir(outPath, 0755)
+		if err != nil {
+			logs.Error(err)
+			//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: err})
+			return nil, err
+		}
+	}
+	localFilepath := apppath + "/output/" + outputFilename
+	derr := conn.Downloadfile(sftpClient, outputFile, localFilepath)
+	if derr != nil {
+		logs.Error(derr)
+		//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: derr})
+		return nil, derr
+	}
+
+	serequestarr, rerr := u.Readfile(localFilepath)
+	if rerr != nil {
+		logs.Error(rerr)
+		u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: rerr})
+		return nil, rerr
+	}
+	return serequestarr, nil
+}
+
+
+
+//return search host connection
+func (u *Task) Gethostconnect() (*utils.Connection, error) {
 	gHost, gherr := beego.AppConfig.String("googlescrape::host")
 	if gherr != nil {
 		//u.Handletaskerror(&Result{Runid: runid, Output: "", Err: gherr})
@@ -207,116 +290,46 @@ func (u *Task)Searchgoogle(taskId int64,runid int64)([]SearchRequest, error){
 		//u.Handletaskerror(&Result{Runid: runid, Output: "", Err: gperr})
 		return nil, gperr
 	}
-	conn, cerr := utils.Connect(gHost+":"+gPort, gUser, gPass)
-	if cerr != nil {
-		// logs.Error(cerr)
-		//u.Handletaskerror(&Result{Runid: runid, Output: "", Err: cerr})
-		return nil,cerr
-	}
-	workNum:=beego.AppConfig.DefaultString("googlescrape::worrkernum","1")
-	// out := make(chan []byte)
+	return utils.Connect(gHost+":"+gPort, gUser, gPass)
 
-	keywordfile := "/app/GoogleScraper/" + taskdetailVar.TaskFilename + ".txt"
-	createfileCmd := "echo $'" + taskdetailVar.Taskkeyword + "' > " + keywordfile
-
-	// cmdArgs := []string{"-h"}
-	logs.Info(createfileCmd)
-	output, err := conn.SendCommands(createfileCmd)
-	u.Handletaskerror(&Result{Runid: runid, Output: string(output), Err: err})
-	if err != nil {
-		//logs.Error(err)
-		return nil,err
-	}
-
-	outputFilename := taskdetailVar.TaskFilename + "-output.json"
-	outputFile := "/app/GoogleScraper/" + outputFilename
-	logs.Info(outputFile)
-	nunPage := "10"
-	// workNum := "2"
-	keywordCom := "GoogleScraper -m selenium --sel-browser chrome --browser-mode headless --keyword-file " + keywordfile + " --num-workers " + workNum + " --output-filename " + outputFile + " --num-pages-for-keyword " + nunPage + " -v debug"
-
-	//logs.Info(keywordCom)
-	kout, kerr := conn.SendCommands(keywordCom)
-	logs.Info(string(kout))
-	// out<-kout
-	if kerr != nil {
-		logs.Error(kerr)
-		//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: kerr})
-		return nil, kerr
-	}
-	//read ssh file
-	sftpClient, sftperr := conn.Createsfptclient()
-	if sftperr != nil {
-		logs.Error(sftperr)
-		//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: sftperr})
-		return nil,sftperr
-	}
-	defer sftpClient.Close()
-	_, file, _, _ := runtime.Caller(0)
-	apppath, _ := filepath.Abs(filepath.Dir(filepath.Join(file, ".."+string(filepath.Separator))))
-	outPath:=apppath + "/output/"
-	if _, err := os.Stat(outPath); os.IsNotExist(err) {
-		err := os.Mkdir(outPath, 0755)
-		if(err!=nil){
-			logs.Error(err)
-			//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: err})
-			return nil,err
-		}
-	}
-	localFilepath := apppath + "/output/" + outputFilename
-	derr := conn.Downloadfile(sftpClient, outputFile, localFilepath)
-	if derr != nil {
-		logs.Error(derr)
-		//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: derr})
-		return nil,derr
-	}
-
-	serequestarr, rerr := u.Readfile(localFilepath)
-	if rerr != nil {
-		logs.Error(rerr)
-		u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: rerr})
-		return	nil,rerr
-	}
-	return serequestarr,nil
 }
 
-///start a task
-func (u *Task) StartBingtask(taskId int64) {
-	u.Updatetaskstatus(taskId, 3)
-	defer u.Updatetaskstatus(taskId, 4)
-	taskrunModel := TaskRun{}
-	runid, runErr := taskrunModel.CreateRun(taskId)
-	if runErr != nil {
-		logs.Error(runErr)
-		return
-	}
+// ///start a task
+// func (u *Task) StartBingtask(taskId int64) {
+// 	u.Updatetaskstatus(taskId, 3)
+// 	defer u.Updatetaskstatus(taskId, 4)
+// 	taskrunModel := TaskRun{}
+// 	runid, runErr := taskrunModel.CreateRun(taskId)
+// 	if runErr != nil {
+// 		logs.Error(runErr)
+// 		return
+// 	}
 
-	serequestarr,scerr:=u.Searchgoogle(taskId,runid)
-	if scerr != nil {
-		logs.Error(scerr)
-		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: scerr})
-		return
-	}
+// 	serequestarr, scerr := u.Searchgoogle(taskId, runid,"bing")
+// 	if scerr != nil {
+// 		logs.Error(scerr)
+// 		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: scerr})
+// 		return
+// 	}
 
+// 	logs.Info(serequestarr)
 
-	logs.Info(serequestarr)
-
-	searchreqModel := SearchRequest{}
-	serr := searchreqModel.Savesrlist(serequestarr, runid)
-	if serr != nil {
-		logs.Error(serr)
-		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: serr})
-		return
-	}
-	logs.Info("start fetch email")
-	fetchModel := FetchEmail{}
-	fErr := fetchModel.Fetchtaskemail(runid)
-	if fErr != nil {
-		logs.Error(fErr)
-	}
-	logs.Info("task end")
-	// u.Sendemail(runid)
-}
+// 	searchreqModel := SearchRequest{}
+// 	serr := searchreqModel.Savesrlist(serequestarr, runid)
+// 	if serr != nil {
+// 		logs.Error(serr)
+// 		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: serr})
+// 		return
+// 	}
+// 	logs.Info("start fetch email after bing search")
+// 	fetchModel := FetchEmail{}
+// 	fErr := fetchModel.Fetchtaskemail(runid)
+// 	if fErr != nil {
+// 		logs.Error(fErr)
+// 	}
+// 	logs.Info("task end")
+// 	// u.Sendemail(runid)
+// }
 
 ///handle error during run task
 func (u *Task) Handletaskerror(res *Result) error {
@@ -365,7 +378,7 @@ func (u *Task) Sendemail(tastrunId int64) error {
 	// if taerr != nil {
 	// 	return taerr
 	// }
-	
+
 	//get all email by task run id
 	fetModel := FetchEmail{}
 	femailslice, fnum, ferr := fetModel.Fetchallemail(tastrunId)
@@ -382,11 +395,11 @@ func (u *Task) Sendemail(tastrunId int64) error {
 		// if logNum > 0 { //mail already exist in log
 		// 	continue
 		// }
-		mbool,mErr:=mailModel.Checkemailsend(v.Email,tastrunId)
-		if(mErr!=nil){
+		mbool, mErr := mailModel.Checkemailsend(v.Email, tastrunId)
+		if mErr != nil {
 			logs.Error(mErr)
 		}
-		if(mbool){
+		if mbool {
 			continue
 		}
 		//getmail account for send email
