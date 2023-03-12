@@ -2,7 +2,7 @@ appname = marketing
 httpport = 8080
 runmode = dev
 enablexsrf = true
-xsrfkey = 61oETzKXQAGaYdkL5gEmGeJJFuYh7EQnp2XdTP1o
+xsrfkey = vyX4EDOZW3sonu0*doFkW$mer!&QNuQlupvT%r8hF&vM4FDO7PbKznkuzA
 xsrfexpire = 3600
 sessionon = true
 EnableAdmin = true
@@ -46,3 +46,5 @@ url=http://daqiu.kaelmarts.com:80
 user=aapiuser
 pass=pgMZp2b4oJ5uDNPVvDeK
 
+[webshare]
+token=4ZWtvyQPc$Lf0lWWykx%QNinl7JltT

@@ -2,3 +2,4 @@
 output/*
 log/*
 src
+/conf/app.conf

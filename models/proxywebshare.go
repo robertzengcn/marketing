@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	beego "github.com/beego/beego/v2/server/web"
 )
 
 
@@ -31,9 +32,11 @@ const WEBSHAREURL string = "https://proxy.webshare.io"
 
 //get proxy list
 func (u *ProxyWebshare) Proxylist() ([]Proxy, error) {
+	websharetoken:=beego.AppConfig.DefaultString("websharetoken","")
+
 	//send http get request
 	resp, err := http.Get(WEBSHAREURL + "/api/v2/proxy/list/?mode=direct")
-
+	resp.Header.Set("Authorization", websharetoken)
 	if err != nil {
 		return nil, err
 	}

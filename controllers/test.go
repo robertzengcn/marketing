@@ -177,3 +177,11 @@ func(c *TestController)Loadkeywordapi(){
 	c.SuccessJson(nil)
 
 }
+func(c *TestController)GetProxylist(){
+	proxyModel:=models.Proxy{}
+	proxylist,proxyerr:=proxyModel.Handleproxy()
+	if(proxyerr!=nil){
+		c.ErrorJson(202212011410152,proxyerr.Error(),nil)
+	}
+	c.SuccessJson(proxylist)
+

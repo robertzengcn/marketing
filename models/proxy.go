@@ -61,6 +61,11 @@ func (u *Proxy) Handleproxy() ( error) {
 	}
 	//range proxy list,save to database
 	for _, proxy := range proarr {
+		var proxyStr=proxy.Protocol+"://"+proxy.Host+":"+proxy.Port
+		cRes:=u.CheckProxy(proxyStr)
+		if(!cRes){
+			continue;
+		}
 		_, err := u.Save(proxy)
 		if err != nil {
 			return err
@@ -71,7 +76,7 @@ func (u *Proxy) Handleproxy() ( error) {
 var CheckURL = "https://httpbin.org/get"
 // check whether a string is work
 //https://github.com/titanhw/go-proxy-checker/blob/master/core/checker.go
-func CheckProxy(proxy string) bool {
+func (u *Proxy) CheckProxy(proxy string) bool {
 	if strings.TrimSpace(proxy) == "" {
 		return false
 	}
