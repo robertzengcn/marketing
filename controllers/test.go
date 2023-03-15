@@ -179,9 +179,9 @@ func(c *TestController)Loadkeywordapi(){
 }
 func(c *TestController)GetProxylist(){
 	proxyModel:=models.Proxy{}
-	proxylist,proxyerr:=proxyModel.Handleproxy()
+	proxyerr:=proxyModel.Handleproxy()
 	if(proxyerr!=nil){
 		c.ErrorJson(202212011410152,proxyerr.Error(),nil)
 	}
-	c.SuccessJson(proxylist)
-
+	c.SuccessJson(nil)
+}

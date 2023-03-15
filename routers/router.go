@@ -57,6 +57,7 @@ func init() {
 		beego.NSRouter("/getkeywordapi", &controllers.TestController{}, "get:Getkeywordapi"),
 		beego.NSRouter("/getkeywordapi", &controllers.TestController{}, "get:Getkeywordapi"),
 		beego.NSRouter("/importkeyword", &controllers.TestController{}, "post:Loadkeywordapi"),
+		beego.NSRouter("/getproxylist", &controllers.TestController{}, "get:GetProxylist"),
 	
 	)
 	beego.AddNamespace(ns)
