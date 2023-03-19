@@ -1,28 +1,29 @@
 package utils
 
 import (
-    beego "github.com/beego/beego/v2/server/web"
-	"regexp"
-	"os/exec"
-	"github.com/beego/beego/v2/core/logs"
 	"bufio"
 	"crypto/md5"
-	"fmt"
-	"os"
-	"io/ioutil"
-	"net/url"
-	"strings"
 	"encoding/base64"
 	"encoding/csv"
+	"fmt"
+	"github.com/beego/beego/v2/core/logs"
+	beego "github.com/beego/beego/v2/server/web"
+	"io/ioutil"
+	"net/url"
+	"os"
+	"os/exec"
+	"regexp"
+	"strings"
 )
 
-func Init(){
-    beego.AddFuncMap("ValidEmail", ValidEmail) 
+func Init() {
+	beego.AddFuncMap("ValidEmail", ValidEmail)
 	beego.AddFuncMap("Contains", Contains)
-    //add new function in here
+	//add new function in here
 }
+
 //valid email valid
-func ValidEmail(email string) bool{
+func ValidEmail(email string) bool {
 	var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 	if len(email) < 3 && len(email) > 254 {
 		return false
@@ -40,11 +41,12 @@ func Contains(s []string, str string) bool {
 
 	return false
 }
+
 ///run command
-func Runcommand(cmdName string,cmdArgs ...string)error{
+func Runcommand(cmdName string, cmdArgs ...string) error {
 	cmd := exec.Command(cmdName, cmdArgs...)
 	cmdReader, err := cmd.StdoutPipe()
-	
+
 	if err != nil {
 		// fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
 		logs.Error("Error creating StdoutPipe for Cmd")
@@ -58,8 +60,8 @@ func Runcommand(cmdName string,cmdArgs ...string)error{
 			// fmt.Printf("docker build out | %s\n", scanner.Text())
 		}
 	}()
-	cmderrReader,cerr:=cmd.StderrPipe()
-	if(cerr!=nil){
+	cmderrReader, cerr := cmd.StderrPipe()
+	if cerr != nil {
 		logs.Error("Error creating StderrPipe for Cmd")
 		logs.Error(cerr)
 	}
@@ -94,13 +96,15 @@ func Md5V2(str string) string {
 	md5str := fmt.Sprintf("%x", has)
 	return md5str
 }
+
 //handle error
-func Handleerror(errors error)(error){
+func Handleerror(errors error) error {
 	logs.Error(errors)
 	return errors
 }
+
 ///io read file return file content
-func ReadFile(filename string)([]byte,error){
+func ReadFile(filename string) ([]byte, error) {
 	jsonFile, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -110,46 +114,61 @@ func ReadFile(filename string)([]byte,error){
 	return ioutil.ReadAll(jsonFile)
 
 }
+
 ///get top domain from url
-func Gettopdomain(urls string)(string, error){
+func Gettopdomain(urls string) (string, error) {
 	url, err := url.Parse(urls)
-    if err != nil {
-        return "",err
-    }
-    hostname := strings.TrimPrefix(url.Hostname(), "www.")
-	return hostname,nil
+	if err != nil {
+		return "", err
+	}
+	hostname := strings.TrimPrefix(url.Hostname(), "www.")
+	return hostname, nil
 }
-func PanicFunc(errorObj error ) {
+func PanicFunc(errorObj error) {
 	panic(errorObj.Error())
 }
 func BasicAuth(username, password string) string {
 	auth := username + ":" + password
 	return base64.StdEncoding.EncodeToString([]byte(auth))
 }
-///read data from csv file
-func Csvfilehandle(filepath string)([][]string,error){
-	    // open file
-		f, err := os.Open(filepath)
-		
 
-		if err != nil {
-			return nil, err
-		}
-	
-		// remember to close the file at the end of the program
-		defer f.Close()
-		
-	
-		// read csv values using csv.Reader
-		csvReader := csv.NewReader(f)
-		data, err := csvReader.ReadAll()
-		if err != nil {
-			return nil, err
-		}
-		return data,err
+///read data from csv file
+func Csvfilehandle(filepath string) ([][]string, error) {
+	// open file
+	f, err := os.Open(filepath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// remember to close the file at the end of the program
+	defer f.Close()
+
+	// read csv values using csv.Reader
+	csvReader := csv.NewReader(f)
+	data, err := csvReader.ReadAll()
+	if err != nil {
+		return nil, err
+	}
+	return data, err
 }
+
 //check string is url
 func IsUrl(str string) bool {
 	u, err := url.Parse(str)
 	return err == nil && u.Scheme != "" && u.Host != ""
+}
+
+//write data to file, create file if not exist
+func Writetofile(filename string, data string) error {
+	f, err := os.OpenFile(filename,
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	if _, err := f.WriteString(data); err != nil {
+		return err
+	}
+	return nil
 }

@@ -179,9 +179,19 @@ func(c *TestController)Loadkeywordapi(){
 }
 func(c *TestController)GetProxylist(){
 	proxyModel:=models.Proxy{}
-	proxyerr:=proxyModel.Handleproxy()
-	if(proxyerr!=nil){
-		c.ErrorJson(202212011410152,proxyerr.Error(),nil)
-	}
+	go proxyModel.Handleproxy()
+	// if(proxyerr!=nil){
+	// 	c.ErrorJson(202212011410152,proxyerr.Error(),nil)
+	// }
 	c.SuccessJson(nil)
+}
+
+func(c *TestController)UpdatemulProxy(){
+	proxymodel:=models.Proxy{}
+		perr:=proxymodel.Updateproxy()
+		if(perr!=nil){
+			logs.Error(perr)
+			c.ErrorJson(202303191057194,perr.Error(),nil)
+		}
+		c.SuccessJson(nil)
 }

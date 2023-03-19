@@ -6,8 +6,6 @@ import (
 	// "io/ioutil"
 	"marketing/utils"
 	// "os"
-	"time"
-	// "strconv"
 	"fmt"
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
@@ -16,7 +14,10 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
+	"time"
 	// "math/rand"
+	guuid "github.com/google/uuid"
 )
 
 var DefaultTask *Task
@@ -127,7 +128,7 @@ func (u *Task) GetOne(taskId int64) (*Task, error) {
 }
 
 ///start a task
-func (u *Task) Starttask(taskId int64,searchenginer string) {
+func (u *Task) Starttask(taskId int64, searchenginer string) {
 	u.Updatetaskstatus(taskId, 3)
 	defer u.Updatetaskstatus(taskId, 4)
 	taskrunModel := TaskRun{}
@@ -137,7 +138,7 @@ func (u *Task) Starttask(taskId int64,searchenginer string) {
 		return
 	}
 
-	serequestarr, scerr := u.Searchgoogle(taskId, runid,searchenginer)
+	serequestarr, scerr := u.Searchgoogle(taskId, runid, searchenginer)
 	if scerr != nil {
 		logs.Error(scerr)
 		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: scerr})
@@ -175,6 +176,40 @@ func (u *Task) SaveSearchreq(serequestarr []SearchRequest, runid int64) error {
 	return nil
 }
 
+//create proxy file,return proxy file name
+func (u *Task) Createproxyfile(runid int64) (string, error) {
+	//get proxy
+	proxyModel := Proxy{}
+	proxylist, proxyErr := proxyModel.GetProxydb()
+
+	if proxyErr != nil {
+		logs.Error(proxyErr)
+		//u.Handletaskerror(&Result{Runid: runid, Output: "", Err: proxyErr})
+		return "", proxyErr
+	}
+	//create proxy file
+	gid := guuid.New()
+	_, file, _, _ := runtime.Caller(0)
+	//convert proxy array to string, one line per one
+	proxyfile := strconv.FormatInt(runid, 10) + "_" + gid.String() + "_proxy.txt"
+	apppath, _ := filepath.Abs(filepath.Dir(filepath.Join(file, ".."+string(filepath.Separator))))
+	// proxyfilepath:=fmt.Sprintf(
+	// 	`{"filename":"%s/log/%s", "daily":true,"rotate":true}`, apppath, proxyfile)
+	proxyfilepath := apppath + "/output/" + proxyfile
+	proxyCon := ""
+	for _, v := range proxylist {
+		proxyCon += v.Protocol + " " + v.Host + ":" + v.Port + " " + v.User + ":" + v.Pass + " \n"
+	}
+	logs.Info(proxyfilepath)
+	ferr := utils.Writetofile(proxyfilepath, proxyCon)
+	if ferr != nil {
+		logs.Error(ferr)
+		return "", ferr
+	}
+	return proxyfilepath, nil
+
+}
+
 //search keywords on google
 func (u *Task) Searchgoogle(taskId int64, runid int64, searchenginer string) ([]SearchRequest, error) {
 	TaskdetailModel := TaskDetail{}
@@ -184,8 +219,8 @@ func (u *Task) Searchgoogle(taskId int64, runid int64, searchenginer string) ([]
 		return nil, terr
 	}
 	if len(taskdetailVar.Taskkeyword) <= 0 {
-		// return errors.New("keyword empty")
-		u.Handletaskerror(&Result{Runid: runid, Output: "", Err: errors.New("keyword empty")})
+		return nil, errors.New("keyword empty")
+		//u.Handletaskerror(&Result{Runid: runid, Output: "", Err: errors.New("keyword empty")})
 	}
 
 	//get host connect
@@ -198,12 +233,33 @@ func (u *Task) Searchgoogle(taskId int64, runid int64, searchenginer string) ([]
 	workNum := beego.AppConfig.DefaultString("googlescrape::worrkernum", "1")
 	// out := make(chan []byte)
 
+	//create proxy file
+	proxyfile, perr := u.Createproxyfile(runid)
+	if perr != nil {
+		logs.Error(perr)
+		return nil, perr
+	}
+	uftpClient, uftperr := conn.Createsfptclient()
+	if uftperr != nil {
+		logs.Error(uftperr)
+		return nil, uftperr
+	}
+
+	remoteProxy := "/app/GoogleScraper/" + filepath.Base(proxyfile)
+	uerr := conn.Uploadfile(uftpClient, proxyfile, remoteProxy)
+	if uerr != nil {
+		logs.Error(uerr)
+		return nil, uerr
+	}
+	defer uftpClient.Close()
 	keywordfile := "/app/GoogleScraper/" + taskdetailVar.TaskFilename + ".txt"
-	
+
 	createfileCmd := "echo $'" + taskdetailVar.Taskkeyword + "' > " + keywordfile
-	
+	runnumber := 1
+	var seres []SearchRequest
 	// cmdArgs := []string{"-h"}
-	logs.Info(createfileCmd)
+	//logs.Info(createfileCmd)
+
 	output, err := conn.SendCommands(createfileCmd)
 	u.Handletaskerror(&Result{Runid: runid, Output: string(output), Err: err})
 	if err != nil {
@@ -217,55 +273,66 @@ func (u *Task) Searchgoogle(taskId int64, runid int64, searchenginer string) ([]
 	nunPage := "10"
 	// workNum := "2"
 	keywordCom := "GoogleScraper -m selenium --sel-browser chrome --browser-mode headless --keyword-file " + keywordfile + " --num-workers " + workNum + " --output-filename " + outputFile + " --num-pages-for-keyword " + nunPage + " -v debug"
-	if(searchenginer=="bing"){
-		keywordCom+=" --search-engines \"bing\""
+	//add proxy to command
+	keywordCom += " --proxy-file " + remoteProxy
+	if searchenginer == "bing" {
+		keywordCom += " --search-engines \"bing\""
 	}
-	//logs.Info(keywordCom)
-	kout, kerr := conn.SendCommands(keywordCom)
-	logs.Info(string(kout))
-	// out<-kout
-	if kerr != nil {
-		logs.Error(kerr)
-		//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: kerr})
-		return nil, kerr
-	}
-	//read ssh file
-	sftpClient, sftperr := conn.Createsfptclient()
-	if sftperr != nil {
-		logs.Error(sftperr)
-		//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: sftperr})
-		return nil, sftperr
-	}
-	defer sftpClient.Close()
-	_, file, _, _ := runtime.Caller(0)
-	apppath, _ := filepath.Abs(filepath.Dir(filepath.Join(file, ".."+string(filepath.Separator))))
-	outPath := apppath + "/output/"
-	if _, err := os.Stat(outPath); os.IsNotExist(err) {
-		err := os.Mkdir(outPath, 0755)
-		if err != nil {
-			logs.Error(err)
-			//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: err})
-			return nil, err
+	logs.Info(keywordCom)
+	for runnumber <= 3 {
+		kout, kerr := conn.SendCommands(keywordCom)
+
+		logs.Info(string(kout))
+		// out<-kout
+		if kerr != nil {
+			logs.Error(kerr)
+			//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: kerr})
+			return nil, kerr
 		}
-	}
-	localFilepath := apppath + "/output/" + outputFilename
-	derr := conn.Downloadfile(sftpClient, outputFile, localFilepath)
-	if derr != nil {
-		logs.Error(derr)
-		//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: derr})
-		return nil, derr
-	}
+		//read ssh file
+		sftpClient, sftperr := conn.Createsfptclient()
+		if sftperr != nil {
+			logs.Error(sftperr)
+			//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: sftperr})
+			return nil, sftperr
+		}
+		defer sftpClient.Close()
 
-	serequestarr, rerr := u.Readfile(localFilepath)
-	if rerr != nil {
-		logs.Error(rerr)
-		u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: rerr})
-		return nil, rerr
+		_, file, _, _ := runtime.Caller(0)
+		apppath, _ := filepath.Abs(filepath.Dir(filepath.Join(file, ".."+string(filepath.Separator))))
+		outPath := apppath + "/output/"
+		if _, err := os.Stat(outPath); os.IsNotExist(err) {
+			err := os.Mkdir(outPath, 0755)
+			if err != nil {
+				logs.Error(err)
+				//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: err})
+				return nil, err
+			}
+		}
+		localFilepath := apppath + "/output/" + outputFilename
+		derr := conn.Downloadfile(sftpClient, outputFile, localFilepath)
+		if derr != nil {
+			logs.Error(derr)
+			//u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: derr})
+			return nil, derr
+		}
+
+		serequestarr, rerr := u.Readfile(localFilepath)
+		if rerr != nil {
+			logs.Error(rerr)
+			u.Handletaskerror(&Result{Runid: runid, Output: string(kout), Err: rerr})
+			return nil, rerr
+		}
+		
+		if len(serequestarr) > 0 {
+			seres = serequestarr
+			break
+		}
+		runnumber++
+		//return serequestarr, nil
 	}
-	return serequestarr, nil
+	return seres, nil
 }
-
-
 
 //return search host connection
 func (u *Task) Gethostconnect() (*utils.Connection, error) {

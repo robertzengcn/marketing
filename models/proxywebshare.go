@@ -55,7 +55,7 @@ func (u *ProxyWebshare) Proxylist() ([]Proxy, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var returnRes []Proxy
 	page := 25
 	for i := 0; i < result.Count; i += page {
@@ -87,11 +87,19 @@ func (u *ProxyWebshare) Proxylist() ([]Proxy, error) {
 				CountryCode: proxy.CountryCode,
 				Protocol:    "http",
 				Source:      "webshare",
-				Available:  1,
+				Available:   1,
 			})
 		}
 		//logs.Info(returnRes)
 		return returnRes, nil
 	}
 	return nil, nil
+}
+
+//create proxy
+func (u *ProxyWebshare) Createproxy() error {
+	return nil
+}
+func (u *ProxyWebshare)Updateproxy() (error){
+	return nil
 }
