@@ -1,10 +1,12 @@
 package models
 
 import (
-	"github.com/beego/beego/v2/client/orm"
-	"time"
-	"github.com/parnurzeal/gorequest"
+	// "encoding/base64"
 	"strings"
+	"time"
+	"github.com/beego/beego/v2/client/orm"
+	"github.com/beego/beego/v2/core/logs"
+	"github.com/parnurzeal/gorequest"
 )
 
 type Proxy struct {
@@ -18,6 +20,9 @@ type Proxy struct {
 	CountryCode string    `orm:"size(20)" json:"country_code"`
 	Addtime     time.Time `orm:"auto_now_add;type(datetime)"`
 	Checktime   time.Time `orm:"null;type(datetime)"`
+	Source 		string    `orm:"size(20)"`
+	Usetime	 time.Time `orm:"null;type(datetime)"`
+	//Googleenable int  	 `orm:"size(1);default(0);description(whether the proxy is enable on google)"`
 }
 
 ///defined table name
@@ -54,25 +59,38 @@ func (u *Proxy) GetProxylist(pxw Proxyway) ([]Proxy, error) {
 
 //handle proxy from third party
 func (u *Proxy) Handleproxy() ( error) {
-	pxw := ProxyWebshare{}
+	// pxw := ProxyWebshare{}
+	pxw := Asocksproxy{}
 	proarr,perr:=u.GetProxylist(&pxw)
+	logs.Info(proarr)
 	if(perr!=nil){
+		logs.Error(perr)
 		return nil
 	}
 	//range proxy list,save to database
 	for _, proxy := range proarr {
-		var proxyStr=proxy.Protocol+"://"+proxy.Host+":"+proxy.Port
+		var proxyStr=proxy.Protocol+"://"+proxy.User+":"+proxy.Pass+"@"+proxy.Host+":"+proxy.Port
 		cRes:=u.CheckProxy(proxyStr)
+		logs.Info(cRes)
 		if(!cRes){
 			continue;
 		}
+		//check proxy enable on Google
+//		gres:=u.CheckGoogleProxy(proxyStr,"google")
+//		logs.Info(gres)
+		// if(gres){
+		// 	proxy.Googleenable=1
+		// }
+
 		_, err := u.Save(proxy)
 		if err != nil {
+			logs.Error(err)
 			return err
 		}
 	}
 	return nil
 }
+
 var CheckURL = "https://httpbin.org/get"
 // check whether a string is work
 //https://github.com/titanhw/go-proxy-checker/blob/master/core/checker.go
@@ -93,10 +111,67 @@ func (u *Proxy) CheckProxy(proxy string) bool {
 	// defer resultPool.Put(resp)
 	// do the Request
 	request := gorequest.New()
+	// auth := username+":"+password
+    // basicAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte(auth))
+	// .Set("Proxy-Authorization", basicAuth)
+	logs.Info(proxy)
 	_, _, errors := request.Proxy(proxy).Get(CheckURL).EndStruct(&resp)
-	if errors != nil {
-		return false
-	}
-	return strings.Contains(proxy, resp["origin"].(string))
+	logs.Error(errors)
+	return errors == nil 
+	//return false
+	//logs.Info(resp)
+	
+	//return strings.Contains(proxy, resp["origin"].(string))
 }
 
+//check proxy enable in google
+func (u *Proxy) CheckGoogleProxy(proxy string, types string) bool {
+	var CheckproxyURL = ""
+	if strings.TrimSpace(proxy) == "" {
+		return false
+	}
+	if(types=="google"){
+		CheckproxyURL = "https://www.google.com"
+	}else{
+		CheckproxyURL = "https://www.bing.com"
+	}
+	// no protocol, add //
+	if !strings.Contains(proxy, "//") {
+		proxy = "//" + proxy
+	}
+	
+	// get resources from pool and release after operations
+	// request := requestPool.Get().(*gorequest.SuperAgent)
+	// resp := resultPool.Get().(map[string]interface{})
+	//var resp map[string]interface{}
+
+	request := gorequest.New()
+
+	resp, _, errors := request.Proxy(proxy).Get(CheckproxyURL).End()
+	
+	if errors != nil {
+	logs.Error(errors)
+		return false
+	}
+	logs.Info(resp.StatusCode)
+	return resp.StatusCode==200
+}
+//update proxy
+func (u *Proxy)Updateproxy()(error){
+	pxw := Asocksproxy{}
+	return pxw.Updateproxy()
+}
+//get proxy from local database
+func (u *Proxy)GetProxydb()([]Proxy,error){
+	o := orm.NewOrm()
+	var proxylist []Proxy
+	_, err := o.QueryTable(u).Filter("available", 1).OrderBy("usetime", "-addtime").Limit(10).All(&proxylist)
+	for _,proxy:=range proxylist{
+		proxy.Usetime=time.Now()
+		_, err := o.Update(&proxy)
+		if err != nil {
+			return proxylist,err
+		}
+	}
+	return proxylist,err
+}
