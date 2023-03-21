@@ -167,7 +167,7 @@ func (u *EmailService) GetEsbycam(campaignId int64) (*EmailService, error) {
 	var ess []EmailService
 	o := orm.NewOrm()
 	qs := o.QueryTable(u)
-	_, mailerr := qs.Filter("campaign_id", campaignId).OrderBy("usetime").Limit(1).All(&ess, "Id", "From", "Password", "Host", "Port")
+	_, mailerr := qs.Filter("campaign_id", campaignId).Filter("status",1).OrderBy("usetime").Limit(1).All(&ess, "Id", "From", "Password", "Host", "Port")
 	if mailerr != nil {
 		return nil, mailerr
 	}
