@@ -10,9 +10,9 @@ import (
 
 func InitTask() {
 
-	cvtk1 := task.NewTask("tk1", "0 0 2 * * *", func(ctx context.Context) error {
+	cvtk1 := task.NewTask("tk1", "0 0 */2 * * *", func(ctx context.Context) error {
 
-		logs.Info("run task at 2 per day")
+		logs.Info("run task every two hour per day")
 		scheduleModel := models.Schedule{}
 		schVar, schErr := scheduleModel.Findallschedule("d")
 		if schErr != nil {
