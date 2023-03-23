@@ -14,7 +14,8 @@ type MailLog struct {
 	Content string `orm:"type(text);column(mail_content)"`
 	Receiver string `orm:"size(150);column(mail_receiver)"`  
 	TplRecord time.Time `orm:"auto_now;type(datetime)"`
-	TaskrunId *TaskRun  `orm:"rel(fk);on_delete(do_nothing);column(taskrun_id)"`	  
+	TaskrunId *TaskRun  `orm:"rel(fk);on_delete(do_nothing);column(taskrun_id)"`
+	EmailService *EmailService 	 `orm:"rel(fk);on_delete(do_nothing);column(emailser_id)"` 
 }
 func (u *MailLog) TableName() string {
 	return "mail_log"

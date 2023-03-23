@@ -264,7 +264,50 @@ func (u *EmailService) Sendemailtask(fetchemail *FetchEmail, taskrunId int64) er
 		Content:   chooseEm.TplContent,
 		Receiver:  toMail[0],
 		TaskrunId: taskrun,
+		EmailService:seremail,
 	}
 	maillogModel.Addmaillog(maillogModel)
 	return nil
+}
+//create keyword list from csv data result
+func (u *EmailService)CreateRescsv(filepath string)([]EmailService,error){
+	data,err:=utils.Csvfilehandle(filepath)	
+	if(err!=nil){
+		return nil,err
+	}
+	var EmailServiceArrs []EmailService
+	CampaignModel:= Campaign{}
+	for i, line := range data {
+        if i > 0 { // omit header line
+            var rec EmailService
+            for j, field := range line {
+                if j == 0 {
+                    rec.From = field					
+                } else if j == 1 {
+                    rec.Password=field
+                }else if j==2{
+					rec.Name=field
+				}else if j==3{
+					rec.Host=field
+				}else if j==4{
+					rec.Port=field
+				}else if j==5{
+					if(len(field)<1){
+						logs.Error("campaign is empty")
+					}
+					campaignId,_:=strconv.ParseInt(field,10,64)
+					campgn,cerr:=CampaignModel.FindCambyid(campaignId)
+					if(cerr!=nil){
+						logs.Error(cerr)
+						break
+					}
+					rec.Campaign=campgn
+				}else if j==6{
+					rec.Status,_=strconv.Atoi(field)
+				}
+            }
+            EmailServiceArrs = append(EmailServiceArrs, rec)
+        }
+    }
+    return EmailServiceArrs,nil
 }
