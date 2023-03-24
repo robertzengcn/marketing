@@ -217,3 +217,18 @@ func (c *TestController) UpdatemulProxy() {
 	}
 	c.SuccessJson(nil)
 }
+
+func (c *TestController) Getemailbycampaign() {
+	//get campaign id
+	campaign_id,camerr:=c.GetInt64("campaign_id",0)
+	if(camerr!=nil){
+		c.ErrorJson(202303241500,camerr.Error(),nil)
+	}
+	emailSer:=models.EmailService{}
+	logs.Info(campaign_id)
+	emailserentity,emailerr:=emailSer.GetEsbycam(campaign_id)
+	if(emailerr!=nil){
+		c.ErrorJson(202303241429, emailerr.Error(), nil)
+	}
+	c.SuccessJson(emailserentity)
+}

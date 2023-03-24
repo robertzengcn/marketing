@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 	"marketing/utils"
+	//"errors"
 )
 
 type EmailService struct {
@@ -164,14 +165,14 @@ func (u *EmailService) Createemailser(emser EmailService) (int64, error) {
 
 ///get email service by campaign id
 func (u *EmailService) GetEsbycam(campaignId int64) (*EmailService, error) {
-	var ess []EmailService
+	var ess EmailService
 	o := orm.NewOrm()
 	qs := o.QueryTable(u)
-	_, mailerr := qs.Filter("campaign_id", campaignId).Filter("status",1).OrderBy("usetime").Limit(1).All(&ess, "Id", "From", "Password", "Host", "Port")
-	if mailerr != nil {
-		return nil, mailerr
+	err:=qs.Filter("campaign_id", campaignId).Filter("status",1).OrderBy("usetime").One(&ess, "Id", "From", "Password", "Host", "Port")
+	if err !=nil{
+		return nil, err	
 	}
-	return &ess[0], nil
+	return  &ess,nil	
 }
 
 ///update email send time
