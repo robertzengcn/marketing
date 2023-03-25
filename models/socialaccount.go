@@ -11,7 +11,7 @@ type SocialAccount struct {
 	CampaignId *Campaign `orm:"rel(fk);on_delete(do_nothing);column(campaign_id)"`
 	UserName   string  `orm:"size(100)" json:"username"`
 	PassWord   string  `orm:"size(100)" json:"password"`
-	SocialplatformId *SocialPlatform `orm:"rel(fk);on_delete(do_nothing);column(socialplatform_id)" json:"password"`
+	SocialplatformId *SocialPlatform `orm:"rel(fk);on_delete(do_nothing);column(socialplatform_id)" json:"socialplatform_id"`
 	Stauts    int8   `orm:"default(1)"` // 1:active 2:inactive
 	Createtime time.Time `orm:"auto_now;type(datetime)"`
 

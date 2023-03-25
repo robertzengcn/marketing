@@ -283,20 +283,20 @@ func (u *EmailService)CreateRescsv(filepath string)([]EmailService,error){
             var rec EmailService
             for j, field := range line {
                 if j == 0 {
-                    rec.From = field					
+                    rec.From = strings.TrimSpace(field)					
                 } else if j == 1 {
-                    rec.Password=field
+                    rec.Password=strings.TrimSpace(field)
                 }else if j==2{
-					rec.Name=field
+					rec.Name=strings.TrimSpace(field)
 				}else if j==3{
-					rec.Host=field
+					rec.Host=strings.TrimSpace(field)
 				}else if j==4{
-					rec.Port=field
+					rec.Port=strings.TrimSpace(field)
 				}else if j==5{
 					if(len(field)<1){
 						logs.Error("campaign is empty")
 					}
-					campaignId,_:=strconv.ParseInt(field,10,64)
+					campaignId,_:=strconv.ParseInt(strings.TrimSpace(field),10,64)
 					campgn,cerr:=CampaignModel.FindCambyid(campaignId)
 					if(cerr!=nil){
 						logs.Error(cerr)
@@ -304,7 +304,7 @@ func (u *EmailService)CreateRescsv(filepath string)([]EmailService,error){
 					}
 					rec.Campaign=campgn
 				}else if j==6{
-					rec.Status,_=strconv.Atoi(field)
+					rec.Status,_=strconv.Atoi(strings.TrimSpace(field))
 				}
             }
             EmailServiceArrs = append(EmailServiceArrs, rec)
