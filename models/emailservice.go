@@ -99,6 +99,7 @@ func (u *EmailService) Sendemailtsl(emailService *EmailService, toList []string,
 	}
 	// Data
 	w, err := c.Data()
+	u.Updatesendtime(emailService.Id)
 	if err != nil {
 		logs.Error(err)
 		return err
@@ -106,7 +107,7 @@ func (u *EmailService) Sendemailtsl(emailService *EmailService, toList []string,
 	
 	_, err = w.Write([]byte(msg))
 	//update send time log
-	u.Updatesendtime(emailService.Id)
+	
 
 	if err != nil {
 		//disable email account
