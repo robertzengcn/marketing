@@ -33,10 +33,11 @@ func init() {
 }
 
 ///create campaign with name
-func (u *Campaign)CreateCampaign(username string) (id int64, err error) {
+func (u *Campaign)CreateCampaign(username string,tags string) (id int64, err error) {
 	o := orm.NewOrm()
 	var us Campaign
 	us.CampaignName = username
+	us.Tags=tags
 	id, err = o.Insert(&us)
 		return id,err
 }
