@@ -66,10 +66,7 @@ func Valid_beartoken(authstr string)(bool){
 	token:=splitToken[1]
 	accountTokenModel:=models.AccountToken{}
 	atoken,_:=accountTokenModel.CheckAccounttoken(token)
-	if(atoken!=nil){
-		return true
-	}
-	return false
+	return atoken!=nil
 }
 
 func Filter_user(ctx *context.Context) {

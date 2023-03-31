@@ -63,12 +63,12 @@ func (u *Campaign)FindCambyid(id int64)(*Campaign,error){
 
 } 
 ///get social account relation with campaign use CampaignId
-func  (u *Campaign)GetSocialAccount(id int64)([]SocialAccount,error){
+func  (u *Campaign)GetSocialAccount(id int64)(*SocialAccount,error){
 	o := orm.NewOrm()
-	var socialAccount []SocialAccount
-	_, err := o.QueryTable(new(SocialAccount)).Filter("campaign_id", id).All(&socialAccount, "id", "campaign_id", "user_name", "pass_word", "socialplatform_id", "createtime")
+	var socialAccount SocialAccount
+	err := o.QueryTable(new(SocialAccount)).Filter("campaign_id", id).One(&socialAccount, "id", "campaign_id", "user_name", "pass_word", "socialplatform_id", "createtime")
 	if err != nil {
 		return nil, err
 	}
-	return socialAccount, nil
+	return &socialAccount, nil
 }

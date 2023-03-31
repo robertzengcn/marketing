@@ -15,18 +15,24 @@ type CampaignController struct {
 	i18n.Locale
 }
 
+type Socialresp struct{
+	Sotype string `json:"sotype"`
+	User string `json:"user"`
+	Pass string `json:"pass"`
+	Proxy SoProxy `json:"proxy"`
+}
+type SoProxy struct{
+	Url string `json:"url"`
+	User string `json:"user"`
+	Pass string `json:"pass"`
+}
 // func (c *CampaignController) Prepare() {
 //     c.EnableXSRF = false
 // }
 func (c *CampaignController)ChildPrepare(){
 	
 }
-// func (c *CampaignController)Welcome(){
-// 	l := logs.GetLogger()
-// 	c.Data["langTemplateKey"] = c.GetString("lang")
-// 	l.Println(c.Data["langTemplateKey"])
-// 	c.TplName = "welcome.tpl" 
-// }
+
 
 //create campaign
 func (c *CampaignController) CreateCampaign() {
@@ -65,7 +71,13 @@ func (c *CampaignController) GetSocialAccount() {
 		c.ErrorJson(20211208153839,err.Error(),nil)
 
 	}
-	c.SuccessJson(socialaccounts)
+	socirep:=Socialresp{
+		User: socialaccounts.UserName,
+		Pass: socialaccounts.PassWord,
+		Sotype: socialaccounts.SocialplatformId.Name,
+		
+	}
+	c.SuccessJson(socirep)
 }
 
 

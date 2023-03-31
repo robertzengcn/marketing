@@ -13,8 +13,9 @@ type SocialAccount struct {
 	PassWord   string  `orm:"size(100)" json:"password"`
 	SocialplatformId *SocialPlatform `orm:"rel(fk);on_delete(do_nothing);column(socialplatform_id)" json:"socialplatform_id"`
 	Stauts    int8   `orm:"default(1)"` // 1:active 2:inactive
+	Proxy *SocialProxy `orm:"rel(fk);on_delete(do_nothing);column(proxy_id)" json:"proxy_id"`
 	Createtime time.Time `orm:"auto_now;type(datetime)"`
-
+    
 }
 
 func (u *SocialAccount) TableName() string {
