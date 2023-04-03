@@ -42,6 +42,7 @@ func init() {
 	beego.Router("/social/create", &controllers.SocialController{}, "post:CreateSocialAccount")
 	beego.Router("/user/info", &controllers.AccountController{}, "get:Accountinfo")
 	beego.Router("/schedule/list", &controllers.ScheduleController{}, "get:ListSchedule")
+	beego.Router("/socialcampaign/create", &controllers.ScheduleController{}, "get:ListSchedule")
 
 	ns := beego.NewNamespace("/test",
 		beego.NSInclude(

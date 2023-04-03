@@ -14,7 +14,9 @@ type Campaign struct {
 	CampaignName    string    `orm:"size(100)"`
 	// EmailTpl   *EmailTpl	`orm:"rel(fk);on_delete(do_nothing)"`
 	Tags string `orm:"type(text);null"` //the tag use to fetch keyword
+	Types string  `orm:"size(20);null"` //the type of campaign, email, social
 }
+
 
 func (u *Campaign) TableName() string {
 	return "campaign"
@@ -33,11 +35,12 @@ func init() {
 }
 
 ///create campaign with name
-func (u *Campaign)CreateCampaign(username string,tags string) (id int64, err error) {
+func (u *Campaign)CreateCampaign(username string,tags string,types string) (id int64, err error) {
 	o := orm.NewOrm()
 	var us Campaign
 	us.CampaignName = username
 	us.Tags=tags
+	us.Types=types
 	id, err = o.Insert(&us)
 		return id,err
 }
