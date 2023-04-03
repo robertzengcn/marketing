@@ -40,8 +40,9 @@ func (c *CampaignController) CreateCampaign() {
 	// l.Println("this is a message of get create campaign")
 	
 	campaign_name := c.GetString("campaign_name")
+	tag := c.GetString("tag")
 
-	campaing_id,err:=models.DefaultCampaign.CreateCampaign(campaign_name)
+	campaing_id,err:=models.DefaultCampaign.CreateCampaign(campaign_name,tag)
 
 	if err != nil {
 		c.ErrorJson(20211117161926,err.Error(),nil)
