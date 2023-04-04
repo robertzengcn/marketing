@@ -53,27 +53,28 @@ func (c *CampaignController) CreateCampaign() {
 	if err != nil {
 		c.ErrorJson(20211117161926,err.Error(),nil)
 	}
-	if(cts=="social"){
-		//for social type, we need to save proxy
-		proxyUrl := c.GetString("proxy_url")
-		proxyUser:=c.GetString("proxy_user")
-		proxyPass:=c.GetString("proxy_pass")
-		sop:=models.SocialProxy{
-		Url:proxyUrl,
-		Username: proxyUser,
-		Password: proxyPass,
-		Campaign: &models.Campaign{CampaignId: campaing_id},
+	// if(cts=="social"){
 
-		}
+	// 	//for social type, we need to save proxy
+	// 	proxyUrl := c.GetString("proxy_url")
+	// 	proxyUser:=c.GetString("proxy_user")
+	// 	proxyPass:=c.GetString("proxy_pass")
+	// 	sop:=models.SocialProxy{
+	// 	Url:proxyUrl,
+	// 	Username: proxyUser,
+	// 	Password: proxyPass,
+	// 	//Campaign: &models.Campaign{CampaignId: campaing_id},
 
-		socialProxyM:=models.SocialProxy{}
-		//valid proxy data before save data
+	// 	}
+
+	// 	socialProxyM:=models.SocialProxy{}
+	// 	//valid proxy data before save data
 		
-		_,spr:=socialProxyM.Save(sop)
-		if(spr!=nil){
-			c.ErrorJson(20230403105774,spr.Error(),nil)
-		}
-	}
+	// 	_,spr:=socialProxyM.Save(sop)
+	// 	if(spr!=nil){
+	// 		c.ErrorJson(20230403105774,spr.Error(),nil)
+	// 	}
+	// }
 
 	c.SuccessJson(campaing_id)
 }
@@ -117,6 +118,76 @@ func (c *CampaignController) GetSocialAccount() {
 		Proxy: sop,
 	}
 	c.SuccessJson(socirep)
+}
+//create social account in campaign
+func (c *CampaignController) CreateSocialAccount() {
+	campaign_id,_ := c.GetInt64("campaign_id",0)
+	social_type := c.GetString("social_type")
+	user := c.GetString("user")
+	pass := c.GetString("pass")
+	accountname:=c.GetString("accountname")
+	phone:=c.GetString("phone")
+	email:=c.GetString("email")
+
+	proxyUrl := c.GetString("proxy_url")
+	proxyUser:=c.GetString("proxy_user")
+	proxyPass:=c.GetString("proxy_pass")
+	if(campaign_id<=0){
+		c.ErrorJson(202304041002132,"campaign id incorrect",nil)
+	}
+	if(len(social_type)<=0){
+		c.ErrorJson(202304041002135,"social type incorrect",nil)
+	}
+	if(len(user)<=0){
+		c.ErrorJson(202304041005138,"user incorrect",nil)
+	}
+	if(len(pass)<=0){
+		c.ErrorJson(202304041005141,"pass incorrect",nil)
+	}
+	if(len(proxyUrl)<=0){
+		c.ErrorJson(202304041010144,"proxy url incorrect",nil)
+	}
+	if(len(proxyUser)<=0){
+		c.ErrorJson(202304041012147,"proxy user incorrect",nil)
+	}
+	if(len(proxyPass)<=0){
+		c.ErrorJson(202304041012150,"proxy pass incorrect",nil)
+	}
+	//check email vaild
+	if(!utils.ValidEmail(email)){
+		c.ErrorJson(202304041115158,"email incorrect",nil)
+	}
+
+	//check campaign id correct
+	campaign,err:=models.DefaultCampaign.FindCambyid(campaign_id)
+	if(err!=nil){
+		c.ErrorJson(202304041037159,err.Error(),nil)
+	}	
+
+	sop:=models.SocialProxy{
+	Url:proxyUrl,
+	Username: proxyUser,
+	Password: proxyPass,
+	//Campaign: &models.Campaign{CampaignId: campaign_id},
+	}
+	//check social platform id
+	socialplatform,err:=models.DefaultSocialPlatform.FindSocialPlatformByName(social_type)
+	if(err!=nil){
+		c.ErrorJson(202304041013163,err.Error(),nil)
+	}
+
+	socialProxyM:=models.SocialProxy{}
+	//valid proxy data before save data	
+	sproxyId,spr:=socialProxyM.Save(sop)
+	if(spr!=nil){
+		c.ErrorJson(20230403105774,spr.Error(),nil)
+	}
+	//save social account
+	socialaccount,err:=models.DefaultSocialAccount.CreateSocialAccount(campaign.CampaignId,user,pass,socialplatform.Id,accountname,phone,email,sproxyId)
+	if(err!=nil){
+		c.ErrorJson(20230403105183,err.Error(),nil)
+	}
+	c.SuccessJson(socialaccount)
 }
 
 

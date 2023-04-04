@@ -39,10 +39,12 @@ func init() {
 
 	// beego.Router("/welcome", &controllers.CampaignController{}, "get:Welcome")
 	beego.Router("/healthcheck", &controllers.MainController{}, "get:Healthcheck")
-	beego.Router("/social/create", &controllers.SocialController{}, "post:CreateSocialAccount")
+	// beego.Router("/social/create", &controllers.SocialController{}, "post:CreateSocialAccount")
 	beego.Router("/user/info", &controllers.AccountController{}, "get:Accountinfo")
 	beego.Router("/schedule/list", &controllers.ScheduleController{}, "get:ListSchedule")
-	beego.Router("/socialcampaign/create", &controllers.ScheduleController{}, "get:ListSchedule")
+	beego.Router("/socialcampaign/create", &controllers.CampaignController{}, "post:CreateSocialAccount")
+	beego.Router("/getsobyCam", &controllers.CampaignController{}, "get:GetSocialAccount")
+	//beego.Router("/getsobyCam", &controllers.CampaignController{}, "get:GetSocialAccount")
 
 	ns := beego.NewNamespace("/test",
 		beego.NSInclude(

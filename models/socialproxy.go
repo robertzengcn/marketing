@@ -13,7 +13,7 @@ type SocialProxy struct {
 	Url string `orm:"size(350)" valid:"Required"`
 	Username string `orm:"size(350)" valid:"Required"`
 	Password string `orm:"size(350)" valid:"Required"`
-	Campaign *Campaign `orm:"rel(fk);column(campaign_id)" json:"campaign_id" valid:"Required"`
+	// Campaign *Campaign `orm:"rel(fk);column(campaign_id)" json:"campaign_id" valid:"Required"`
 	Createtime time.Time `orm:"auto_now;type(datetime)"`
 }
 
@@ -44,7 +44,7 @@ func (u *SocialProxy) Save(proxy SocialProxy) (int64, error) {
 	o := orm.NewOrm()
 	qs := o.QueryTable(u)
 	var proxyitem SocialProxy
-	err := qs.Filter("url", proxy.Url).Filter("username", proxy.Username).Filter("password", proxy.Password).Filter("campaign_id", proxy.Campaign.CampaignId).One(&proxyitem)
+	err := qs.Filter("url", proxy.Url).Filter("username", proxy.Username).Filter("password", proxy.Password).One(&proxyitem)
 	// logs.Error(err)
 	if err == orm.ErrNoRows {
 		id, err := o.Insert(&proxy)
@@ -57,6 +57,13 @@ func (u *SocialProxy) GetSocialProxyByCampaignId(campaignid int64) (SocialProxy,
 	o := orm.NewOrm()
 	var socialproxy SocialProxy
 	err := o.QueryTable(u).Filter("campaign_id", campaignid).One(&socialproxy)
+	return socialproxy, err
+}
+//get social proxy by id
+func (u *SocialProxy) GetSocialProxyById(id int64) (SocialProxy, error) {
+	o := orm.NewOrm()
+	var socialproxy SocialProxy
+	err := o.QueryTable(u).Filter("id", id).One(&socialproxy)
 	return socialproxy, err
 }
 
