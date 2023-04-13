@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/beego/beego/v2/client/orm"
+	"github.com/beego/beego/v2/core/logs"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -42,7 +43,7 @@ func (u *SocialAccount) CreateSocialAccount(campaignId int64, userName string, p
 	//find social proxy by proxy id
 	sopModel := SocialProxy{}
 	sop, err := sopModel.GetSocialProxyById(proxyId)
-
+	logs.Error(proxyId)
 	if err != nil {
 		return 0, errors.New("proxy not found")
 	}
@@ -53,6 +54,7 @@ func (u *SocialAccount) CreateSocialAccount(campaignId int64, userName string, p
 		PassWord:         passWord,
 		SocialplatformId: &SocialPlatform{Id: socialplatformId},
 		Proxy:            &sop,
+		Stauts: 1,
 	}
 	//log.Info(socialAccount)
 	id, err := o.Insert(&socialAccount)
@@ -67,4 +69,15 @@ func (u *SocialAccount) CreateSocialAccount(campaignId int64, userName string, p
 	}
 
 	return id, err
+}
+
+///get social account relation with campaign use CampaignId
+func  (u *SocialAccount)GetSocialAccountcam(id int64)(*SocialAccount,error){
+	o := orm.NewOrm()
+	var socialAccount SocialAccount
+	err := o.QueryTable(new(SocialAccount)).Filter("campaign_id", id).Filter("stauts", 1).One(&socialAccount, "id", "campaign_id", "user_name", "pass_word", "socialplatform_id", "proxy_id")
+	if err != nil {
+		return nil, err
+	}
+	return &socialAccount, nil
 }

@@ -5,8 +5,11 @@ import (
 	"marketing/models"
 	// "github.com/beego/beego/v2/core/logs"
 	// "marketing/utils"
-	"github.com/beego/i18n"
 	"marketing/utils"
+
+	// "github.com/beego/beego/v2/core/logs"
+	"github.com/beego/beego/v2/core/logs"
+	"github.com/beego/i18n"
 	// "fmt"
 	//"errors"
 )
@@ -94,15 +97,17 @@ func (c *CampaignController) ListCampaign() {
 //get socail account relation with campaign use campaign Id
 func (c *CampaignController) GetSocialAccount() {
 	campaign_id,_ := c.GetInt64("campaign_id",0)
-	
-	socialaccounts,err:=models.DefaultCampaign.GetSocialAccount(campaign_id)
+	// logs.Info("campaign id",campaign_id)
+	socialaccounts,err:=models.DefaultSocialAccount.GetSocialAccountcam(campaign_id)
 	if(err!=nil){
-		c.ErrorJson(20211208153839,err.Error(),nil)
+		c.ErrorJson(202304050957100,err.Error(),nil)
 
 	}
 	//get social proxy
 	sopmodel:=models.SocialProxy{}
-	socialproxy,err:=sopmodel.GetSocialProxyByCampaignId(campaign_id)
+	logs.Info(socialaccounts)
+	socialproxy,err:=sopmodel.GetSocialProxyById(socialaccounts.Proxy.Id)
+	
 	if(err!=nil){
 		c.ErrorJson(20230403094479,err.Error(),nil)
 	}
@@ -111,10 +116,18 @@ func (c *CampaignController) GetSocialAccount() {
 		User: socialproxy.Username,
 		Pass: socialproxy.Password,
 	}
+	logs.Info(socialaccounts.SocialplatformId.Id)
+	//get social platform name
+	socialplatform:=models.SocialPlatform{}
+	socialplatform,err=socialplatform.GetSocialPlatformById(socialaccounts.SocialplatformId.Id)
+	if(err!=nil){
+		c.ErrorJson(202304051034123,err.Error(),nil)
+	}
+	logs.Info(socialplatform)
 	socirep:=Socialresp{
 		User: socialaccounts.UserName,
 		Pass: socialaccounts.PassWord,
-		Sotype: socialaccounts.SocialplatformId.Name,
+		Sotype: socialplatform.Name,
 		Proxy: sop,
 	}
 	c.SuccessJson(socirep)

@@ -50,15 +50,15 @@ func (u *SocialProxy) Save(proxy SocialProxy) (int64, error) {
 		id, err := o.Insert(&proxy)
 		return id, err
 	}
-	return 0, err
+	return proxyitem.Id, err
 }	
 //get social proxy by campaign id
-func (u *SocialProxy) GetSocialProxyByCampaignId(campaignid int64) (SocialProxy, error) {
-	o := orm.NewOrm()
-	var socialproxy SocialProxy
-	err := o.QueryTable(u).Filter("campaign_id", campaignid).One(&socialproxy)
-	return socialproxy, err
-}
+// func (u *SocialProxy) GetSocialProxyByCampaignId(campaignid int64) (SocialProxy, error) {
+// 	o := orm.NewOrm()
+// 	var socialproxy SocialProxy
+// 	err := o.QueryTable(u).Filter("campaign_id", campaignid).One(&socialproxy)
+// 	return socialproxy, err
+// }
 //get social proxy by id
 func (u *SocialProxy) GetSocialProxyById(id int64) (SocialProxy, error) {
 	o := orm.NewOrm()

@@ -35,3 +35,14 @@ func (u *SocialPlatform)FindSocialPlatformByName(name string) (SocialPlatform, e
 	}
 	return socialplatform,nil
 }
+//get social platform by id
+func (u *SocialPlatform)GetSocialPlatformById(id int64) (SocialPlatform, error) {
+	o := orm.NewOrm()
+	var socialplatform SocialPlatform
+	qs := o.QueryTable(new(SocialPlatform))
+	qerr:=qs.Filter("id", id).One(&socialplatform, "Id","name")
+	if(qerr!=nil){
+		return socialplatform,qerr
+	}
+	return socialplatform,nil
+}
