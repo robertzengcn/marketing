@@ -75,6 +75,7 @@ func (u *SocialAccount) CreateSocialAccount(campaignId int64, userName string, p
 func  (u *SocialAccount)GetSocialAccountcam(id int64)(*SocialAccount,error){
 	o := orm.NewOrm()
 	var socialAccount SocialAccount
+	
 	err := o.QueryTable(new(SocialAccount)).Filter("campaign_id", id).Filter("stauts", 1).One(&socialAccount, "id", "campaign_id", "user_name", "pass_word", "socialplatform_id", "proxy_id")
 	if err != nil {
 		return nil, err

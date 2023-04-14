@@ -97,6 +97,9 @@ func (c *CampaignController) ListCampaign() {
 //get socail account relation with campaign use campaign Id
 func (c *CampaignController) GetSocialAccount() {
 	campaign_id,_ := c.GetInt64("campaign_id",0)
+	if(campaign_id<=0){
+		c.ErrorJson(202304140951101,"campaign id incorrect",nil)
+	}
 	// logs.Info("campaign id",campaign_id)
 	socialaccounts,err:=models.DefaultSocialAccount.GetSocialAccountcam(campaign_id)
 	if(err!=nil){

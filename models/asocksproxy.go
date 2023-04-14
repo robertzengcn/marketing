@@ -1,16 +1,19 @@
 package models
 
 import (
+	"bytes"
 	"encoding/json"
-	beego "github.com/beego/beego/v2/server/web"
+	"errors"
 	"net/http"
 	"strings"
-	"bytes"
-    //"fmt"
-    "io/ioutil"
-    "mime/multipart"
-	"github.com/beego/beego/v2/core/logs"
 
+	beego "github.com/beego/beego/v2/server/web"
+	"strconv"
+	//"fmt"
+	"io/ioutil"
+	"mime/multipart"
+
+	"github.com/beego/beego/v2/core/logs"
 )
 
 type Asocksproxy struct{}
@@ -124,6 +127,9 @@ func (u *Asocksproxy) Createproxy() error {
 			return err
 		}
 		resp, rp := client.Do(req)
+		if(resp.StatusCode!=200){
+			return errors.New("response code is not 200,code is "+strconv.Itoa(resp.StatusCode))
+		}
 		data, _ := ioutil.ReadAll(resp.Body)
 		if rp != nil {
 			return rp

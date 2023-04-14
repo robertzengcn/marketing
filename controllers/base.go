@@ -3,7 +3,8 @@ package controllers
 import (
 	"encoding/json"
 
-	"github.com/beego/beego/v2/core/logs"
+	//"github.com/beego/beego/v2/core/logs"
+	// "github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/beego/beego/v2/server/web/context"
 
@@ -112,13 +113,14 @@ func Filter_user(ctx *context.Context) {
 //basic Authorization
 func Filter_basic(ctx *context.Context) {
 	username, password, ok :=ctx.Request.BasicAuth()
-	logs.Info(username)
-	logs.Info(password)
+	// logs.Info(username)
+	// logs.Info(password)
 	if ok {
 		fres:=Filter_account(username, password)
 		if(!fres){
 			Forbidenreturn(ctx)
 		}
+		// logs.Info("ok")
 		return
 	}
 	//get basic auth from header
