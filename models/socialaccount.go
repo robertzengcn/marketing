@@ -18,6 +18,7 @@ type SocialAccount struct {
 	PassWord         string          `orm:"size(100)" json:"password"`
 	SocialplatformId *SocialPlatform `orm:"rel(fk);on_delete(do_nothing);column(socialplatform_id)" json:"socialplatform_id"`
 	Stauts           int8            `orm:"default(1)"` // 1:active 2:inactive
+	// UseProxy         int8            `orm:"default(1)"` // whether to use proxy
 	Proxy            *SocialProxy    `orm:"rel(fk);on_delete(do_nothing);column(proxy_id)" json:"proxy_id"`
 	Createtime       time.Time       `orm:"auto_now;type(datetime)"`
 }
@@ -40,21 +41,25 @@ func init() {
 
 ///create social account data
 func (u *SocialAccount) CreateSocialAccount(campaignId int64, userName string, passWord string, socialplatformId int64, accountname string, phoneNumber string, email string, proxyId int64) (int64, error) {
+
 	//find social proxy by proxy id
 	sopModel := SocialProxy{}
-	sop, err := sopModel.GetSocialProxyById(proxyId)
-	logs.Error(proxyId)
-	if err != nil {
-		return 0, errors.New("proxy not found")
+	var sop SocialProxy
+	var err error
+	if proxyId != 0 {
+		sop, err = sopModel.GetSocialProxyById(proxyId)
+		logs.Error(proxyId)
+		if err != nil {
+			return 0, errors.New("proxy not found")
+		}
 	}
-
 	o := orm.NewOrm()
 	socialAccount := SocialAccount{CampaignId: &Campaign{CampaignId: campaignId},
 		UserName:         userName,
 		PassWord:         passWord,
 		SocialplatformId: &SocialPlatform{Id: socialplatformId},
 		Proxy:            &sop,
-		Stauts: 1,
+		Stauts:           1,
 	}
 	//log.Info(socialAccount)
 	id, err := o.Insert(&socialAccount)
@@ -72,10 +77,10 @@ func (u *SocialAccount) CreateSocialAccount(campaignId int64, userName string, p
 }
 
 ///get social account relation with campaign use CampaignId
-func  (u *SocialAccount)GetSocialAccountcam(id int64)(*SocialAccount,error){
+func (u *SocialAccount) GetSocialAccountcam(id int64) (*SocialAccount, error) {
 	o := orm.NewOrm()
 	var socialAccount SocialAccount
-	
+
 	err := o.QueryTable(new(SocialAccount)).Filter("campaign_id", id).Filter("stauts", 1).One(&socialAccount, "id", "campaign_id", "user_name", "pass_word", "socialplatform_id", "proxy_id")
 	if err != nil {
 		return nil, err

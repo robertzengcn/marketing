@@ -25,27 +25,34 @@ func init() {
 		}
 	}
 	beego.Router("*", &controllers.MainController{}, "options:Checkoption")
+	
 	beego.Router("/", &controllers.MainController{})
-	beego.Router("/campaign/create", &controllers.CampaignController{}, "post:CreateCampaign")
-	beego.Router("/task/create", &controllers.TaskController{}, "post:CreateTask")
-	beego.Router("/login/accountlogin", &controllers.AccountController{}, "post:Validaccount")
-	beego.Router("/task/updatetask", &controllers.TaskController{}, "post:UpdateTaskstatus")
+	
+	admin := beego.NewNamespace("/admin",
+		beego.NSInclude(
+			&controllers.TestController{},
+		),	
+	beego.NSRouter("/campaign/create", &controllers.CampaignController{}, "post:CreateCampaign"),
+	beego.NSRouter("/task/create", &controllers.TaskController{}, "post:CreateTask"),
+	beego.NSRouter("/login/accountlogin", &controllers.AccountController{}, "post:Validaccount"),
+	beego.NSRouter("/task/updatetask", &controllers.TaskController{}, "post:UpdateTaskstatus"),
 	//list campagin
-	beego.Router("/campaign", &controllers.CampaignController{}, "get:ListCampaign")
+	beego.NSRouter("/campaign", &controllers.CampaignController{}, "get:ListCampaign"),
 	// beego.Router("/addSite", &controllers.CampaignController{}, "post:Createsite")
-	beego.Router("/emailtpl/create", &controllers.EmailtplController{}, "post:CreateEmailtpl")
-	beego.Router("/emailservice/add", &controllers.EmailserviceController{}, "post:Addemailservice")
-	beego.Router("/schedule/add", &controllers.ScheduleController{}, "post:CreateSchedule")
+	beego.NSRouter("/emailtpl/create", &controllers.EmailtplController{}, "post:CreateEmailtpl"),
+	beego.NSRouter("/emailservice/add", &controllers.EmailserviceController{}, "post:Addemailservice"),
+	beego.NSRouter("/schedule/add", &controllers.ScheduleController{}, "post:CreateSchedule"),
 
 	// beego.Router("/welcome", &controllers.CampaignController{}, "get:Welcome")
-	beego.Router("/healthcheck", &controllers.MainController{}, "get:Healthcheck")
+	beego.NSRouter("/healthcheck", &controllers.MainController{}, "get:Healthcheck"),
 	// beego.Router("/social/create", &controllers.SocialController{}, "post:CreateSocialAccount")
-	beego.Router("/user/info", &controllers.AccountController{}, "get:Accountinfo")
-	beego.Router("/schedule/list", &controllers.ScheduleController{}, "get:ListSchedule")
-	beego.Router("/socialcampaign/create", &controllers.CampaignController{}, "post:CreateSocialAccount")
-	beego.Router("/getsobyCam", &controllers.CampaignController{}, "get:GetSocialAccount")
+	beego.NSRouter("/user/info", &controllers.AccountController{}, "get:Accountinfo"),
+	beego.NSRouter("/schedule/list", &controllers.ScheduleController{}, "get:ListSchedule"),
+	beego.NSRouter("/socialcampaign/create", &controllers.CampaignController{}, "post:CreateSocialAccount"),
+	beego.NSRouter("/getsobyCam", &controllers.CampaignController{}, "get:GetSocialAccount"),
 	//beego.Router("/getsobyCam", &controllers.CampaignController{}, "get:GetSocialAccount")
-
+)
+beego.AddNamespace(admin)
 	ns := beego.NewNamespace("/test",
 		beego.NSInclude(
 			&controllers.TestController{},
@@ -60,9 +67,11 @@ func init() {
 		beego.NSRouter("/getkeywordapi", &controllers.TestController{}, "get:Getkeywordapi"),
 		beego.NSRouter("/loademailapi", &controllers.TestController{}, "post:LoadEmailapi"),
 		beego.NSRouter("/importkeyword", &controllers.TestController{}, "post:Loadkeywordapi"),
-		beego.NSRouter("/getproxylist", &controllers.TestController{}, "get:GetProxylist"),
+		beego.NSRouter("/getproxylist", &controllers.TestController{}, "get:TestProxylist"),
 		beego.NSRouter("/updateproxy", &controllers.TestController{}, "get:UpdatemulProxy"),	
 		beego.NSRouter("/getemailser", &controllers.TestController{}, "post:Getemailbycampaign"),
+		beego.NSRouter("/changeproxy", &controllers.TestController{}, "get:ChangeProxy"),
+		beego.NSRouter("/handleproxy", &controllers.TestController{}, "get:GetProxylist"),
 	
 	)
 	beego.AddNamespace(ns)

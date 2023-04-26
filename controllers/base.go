@@ -75,10 +75,10 @@ func Valid_beartoken(authstr string)(bool){
 }
 
 func Filter_user(ctx *context.Context) {
-	s := []string{"/login", 
-	"/login/accountlogin",
-	"/healthcheck",
-	"api/getsobyCam",
+	s := []string{"/admin/login", 
+	"/admin/login/accountlogin",
+	"/admin/healthcheck",
+	// "api/getsobyCam",
 	} //defined url that not need to valid user login
 	// l := logs.GetLogger()
 	//defined basic auth array

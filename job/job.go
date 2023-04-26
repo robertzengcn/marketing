@@ -65,11 +65,11 @@ func InitTask() {
 	//update prodxy on 1:00 everyday
 	cvtk3 := task.NewTask("tk3", "0 0 1 * * *", func(ctx context.Context) error {
 		proxymodel:=models.Proxy{}
-		perr:=proxymodel.Updateproxy()
+		// perr:=proxymodel.Updateproxy()
 		
-		if(perr!=nil){
-			logs.Error(perr)
-		}
+		// if(perr!=nil){
+		// 	logs.Error(perr)
+		// }
 		herr:=proxymodel.Handleproxy()
 		if(herr!=nil){
 			logs.Error(herr)

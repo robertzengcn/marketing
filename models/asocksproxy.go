@@ -150,3 +150,7 @@ if(cerr!=nil){
 }
 return nil
 }
+//replace proxy
+func(u *Asocksproxy) Replaceproxy(string)(error){
+	return nil
+}

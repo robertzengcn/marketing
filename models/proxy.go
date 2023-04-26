@@ -29,6 +29,7 @@ type Proxy struct {
 func (u *Proxy) TableName() string {
 	return "proxy"
 }
+
 func init() {
 	orm.RegisterModelWithPrefix("mk_", new(Proxy))
 }
@@ -36,6 +37,11 @@ func init() {
 // set engineer as INNODB
 func (u *Proxy) TableEngine() string {
 	return "INNODB"
+}
+//get proxy type
+func (u *Proxy) Getproxytype() (Proxyway) {
+	webproxy:=ProxyWebshare{}
+	return &webproxy
 }
 
 //save proxy to database
@@ -60,8 +66,9 @@ func (u *Proxy) GetProxylist(pxw Proxyway) ([]Proxy, error) {
 //handle proxy from third party
 func (u *Proxy) Handleproxy() ( error) {
 	// pxw := ProxyWebshare{}
-	pxw := Asocksproxy{}
-	proarr,perr:=u.GetProxylist(&pxw)
+	//pxw := Asocksproxy{}
+	pxw :=u.Getproxytype()
+	proarr,perr:=u.GetProxylist(pxw)
 	logs.Info(proarr)
 	if(perr!=nil){
 		logs.Error(perr)
@@ -71,16 +78,14 @@ func (u *Proxy) Handleproxy() ( error) {
 	for _, proxy := range proarr {
 		var proxyStr=proxy.Protocol+"://"+proxy.User+":"+proxy.Pass+"@"+proxy.Host+":"+proxy.Port
 		cRes:=u.CheckProxy(proxyStr)
-		logs.Info(cRes)
+		
 		if(!cRes){
+			logs.Error(cRes)
+			pxw.Replaceproxy(proxy.Host)
+			//disable proxy
+			u.DisableProxydb(proxy.Host,proxy.Port)
 			continue;
 		}
-		//check proxy enable on Google
-//		gres:=u.CheckGoogleProxy(proxyStr,"google")
-//		logs.Info(gres)
-		// if(gres){
-		// 	proxy.Googleenable=1
-		// }
 
 		_, err := u.Save(proxy)
 		if err != nil {
@@ -114,7 +119,7 @@ func (u *Proxy) CheckProxy(proxy string) bool {
 	// auth := username+":"+password
     // basicAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte(auth))
 	// .Set("Proxy-Authorization", basicAuth)
-	logs.Info(proxy)
+	// logs.Info(proxy)
 	_, _, errors := request.Proxy(proxy).Get(CheckURL).EndStruct(&resp)
 	logs.Error(errors)
 	return errors == nil 
@@ -158,7 +163,7 @@ func (u *Proxy) CheckGoogleProxy(proxy string, types string) bool {
 }
 //update proxy
 func (u *Proxy)Updateproxy()(error){
-	pxw := Asocksproxy{}
+	pxw :=u.Getproxytype()
 	return pxw.Updateproxy()
 }
 //get proxy from local database
@@ -174,4 +179,13 @@ func (u *Proxy)GetProxydb()([]Proxy,error){
 		}
 	}
 	return proxylist,err
+}
+//disable proxy from local database
+func (u *Proxy)DisableProxydb(host string, port string)(int64,error){
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+	// var proxyitem Proxy
+	return qs.Filter("host", host).Filter("port", port).Update(orm.Params{
+		"available": 0,
+	})
 }

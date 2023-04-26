@@ -4,16 +4,24 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+
 	//"github.com/beego/beego/v2/core/logs"
+	"github.com/beego/beego/v2/adapter/logs"
 	beego "github.com/beego/beego/v2/server/web"
 	//"io/ioutil"
+	"bytes"
+	"errors"
+	"io/ioutil"
+	"net/url"
 )
 
 type ProxyWebshare struct{}
+
+// var DefaultProxyWebshare *ProxyWebshare
 type WebshareResponse struct {
 	Count    int              `json:"count"`
-	Next     interface{}      `json:"next"`
-	Previous interface{}      `json:"previous"`
+	Next     string      `json:"next"`
+	Previous string      `json:"previous"`
 	Results  []WebshareResult `json:"results"`
 }
 type WebshareResult struct {
@@ -27,6 +35,38 @@ type WebshareResult struct {
 	ProxyAddress     string `json:"proxy_address"`
 	Username         string `json:"username"`
 	Valid            bool   `json:"valid"`
+}
+type ReplaceProxyreq struct {
+	ToReplace ToReplace `json:"to_replace"`
+	ReplaceWith []ReplaceWith `json:"replace_with"`
+	DryRun bool `json:"dry_run"`
+}
+type ToReplace struct{
+	Type    string `json:"type"`
+	IPRange string `json:"ip_range"`
+}
+type ReplaceWith struct{
+	Type        string `json:"type"`
+	CountryCode string `json:"country_code"`
+}
+
+type ReplaceProxyrep struct {
+	ID        int    `json:"id"`
+	Reason    string `json:"reason"`
+	ToReplace struct {
+		Type    string `json:"type"`
+		IPRange string `json:"ip_range"`
+	} `json:"to_replace"`
+	ReplaceWith []struct {
+		Type        string `json:"type"`
+		CountryCode string `json:"country_code"`
+	} `json:"replace_with"`
+	DryRun         bool        `json:"dry_run"`
+	State          string      `json:"state"`
+	ProxiesRemoved interface{} `json:"proxies_removed"`
+	ProxiesAdded   interface{} `json:"proxies_added"`
+	CreatedAt      string      `json:"created_at"`
+	CompletedAt    interface{} `json:"completed_at"`
 }
 
 const WEBSHAREURL string = "https://proxy.webshare.io"
@@ -57,9 +97,9 @@ func (u *ProxyWebshare) Proxylist() ([]Proxy, error) {
 	}
 
 	var returnRes []Proxy
-	page := 25
-	for i := 0; i < result.Count; i += page {
-		req, err := http.NewRequest("GET", WEBSHAREURL+"/api/v2/proxy/list/?mode=direct&limit="+strconv.Itoa(page)+"&offset="+strconv.Itoa(i), nil)
+	i := 1
+	for {
+		req, err := http.NewRequest("GET", WEBSHAREURL+"/api/v2/proxy/list/?mode=direct&page="+strconv.Itoa(i), nil)
 		req.Header.Set("Authorization", websharetoken)
 		if err != nil {
 			return nil, err
@@ -90,10 +130,15 @@ func (u *ProxyWebshare) Proxylist() ([]Proxy, error) {
 				Available:   1,
 			})
 		}
+		i++
+		_,uerr:=url.ParseRequestURI(result.Next)
+		if(len(result.Next) == 0||uerr!=nil){
+			break
+		}
 		//logs.Info(returnRes)
-		return returnRes, nil
+		
 	}
-	return nil, nil
+	return returnRes, nil
 }
 
 //create proxy
@@ -101,5 +146,52 @@ func (u *ProxyWebshare) Createproxy() error {
 	return nil
 }
 func (u *ProxyWebshare)Updateproxy() (error){
+	return nil
+}
+//replace proxy
+func (u *ProxyWebshare)Replaceproxy(url string) (error){
+	torep:=ToReplace{Type: "ip_range",IPRange: url}
+	rpw:=ReplaceWith{Type: "country",CountryCode: "US"}
+	
+	reitem:=[]ReplaceWith{}
+	reitem = append(reitem, rpw)
+
+	rpreq:=ReplaceProxyreq{
+		ToReplace:torep,
+		ReplaceWith:reitem,
+		DryRun:false,
+	}
+	Webshareurl:=WEBSHAREURL+"/api/v2/proxy/replace/"
+	
+	rpreqJson, err := json.Marshal(rpreq)
+	if err != nil {
+		return err
+	}
+	logs.Info(string(rpreqJson))
+	req, errs := http.NewRequest("POST", Webshareurl, bytes.NewBuffer(rpreqJson))	
+	websharetoken := beego.AppConfig.DefaultString("webshare::token", "")
+	req.Header.Add("Authorization", websharetoken)
+	req.Header.Set("Content-Type", "application/json")
+	// req.Header.Set("X-Custom-Header", "myvalue")
+	client := &http.Client{}
+    resp, err := client.Do(req)
+    if err != nil {
+     
+		return err
+    }
+	
+    defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	if errs != nil {
+		return errs
+	}
+	// logs.Info(string(body))
+	if(resp.StatusCode!=201){
+		return errors.New("replace proxy failure,response code is not 201,code is "+strconv.Itoa(resp.StatusCode))
+	}
+	cRep:=ReplaceProxyrep{}
+	if jErr := json.Unmarshal(body, &cRep); jErr != nil {
+		return jErr
+	}
 	return nil
 }
