@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+//	"net/mail"
 )
 
 func Init() {
@@ -172,3 +173,4 @@ func Writetofile(filename string, data string) error {
 	}
 	return nil
 }
+

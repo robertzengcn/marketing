@@ -201,10 +201,11 @@ func (c *TestController) LoadEmailapi() {
 }
 func (c *TestController) GetProxylist() {
 	proxyModel := models.Proxy{}
-	go proxyModel.Handleproxy()
-	// if(proxyerr!=nil){
-	// 	c.ErrorJson(202212011410152,proxyerr.Error(),nil)
-	// }
+	perr:=proxyModel.Handleproxy()
+	
+	if(perr!=nil){
+		c.ErrorJson(202304261517207,perr.Error(),nil)
+	}
 	c.SuccessJson(nil)
 }
 
@@ -231,4 +232,29 @@ func (c *TestController) Getemailbycampaign() {
 		c.ErrorJson(202303241429, emailerr.Error(), nil)
 	}
 	c.SuccessJson(emailserentity)
+}
+//get get proxy list
+func (c *TestController)TestProxylist(){
+	u:=models.Proxy{}
+	pxw :=u.Getproxytype()
+	proarr,perr:=u.GetProxylist(pxw)
+	if(perr!=nil){
+		logs.Error(perr)
+	}
+	logs.Info(proarr)
+	c.SuccessJson(proarr)
+}
+func (c *TestController)TestSaveProxy(){
+	
+
+}
+func (c *TestController)ChangeProxy(){
+	host:="38.154.184.219"
+	u:=models.Proxy{}
+	pxw :=u.Getproxytype()
+	perr:=pxw.Replaceproxy(host)
+	if(perr!=nil){
+		logs.Error(perr)
+	}
+c.SuccessJson(nil)
 }

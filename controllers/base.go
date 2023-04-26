@@ -2,16 +2,21 @@ package controllers
 
 import (
 	"encoding/json"
+
+	//"github.com/beego/beego/v2/core/logs"
+	// "github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/beego/beego/v2/server/web/context"
+
 	// "github.com/beego/beego/v2/core/logs"
 	// "reflect"
 	// "fmt"
-	"github.com/beego/i18n"
-	"marketing/utils"
 	"fmt"
-	"strings"
 	"marketing/models"
+	"marketing/utils"
+	"strings"
+
+	"github.com/beego/i18n"
 )
 
 type Controllerreturn interface {
@@ -66,17 +71,14 @@ func Valid_beartoken(authstr string)(bool){
 	token:=splitToken[1]
 	accountTokenModel:=models.AccountToken{}
 	atoken,_:=accountTokenModel.CheckAccounttoken(token)
-	if(atoken!=nil){
-		return true
-	}
-	return false
+	return atoken!=nil
 }
 
 func Filter_user(ctx *context.Context) {
-	s := []string{"/login", 
-	"/login/accountlogin",
-	"/healthcheck",
-	"api/getsobyCam",
+	s := []string{"/admin/login", 
+	"/admin/login/accountlogin",
+	"/admin/healthcheck",
+	// "api/getsobyCam",
 	} //defined url that not need to valid user login
 	// l := logs.GetLogger()
 	//defined basic auth array
@@ -109,17 +111,29 @@ func Filter_user(ctx *context.Context) {
 	}
 }
 //basic Authorization
-func Filter_basic(ctx *context.Context) {	
+func Filter_basic(ctx *context.Context) {
+	username, password, ok :=ctx.Request.BasicAuth()
+	// logs.Info(username)
+	// logs.Info(password)
+	if ok {
+		fres:=Filter_account(username, password)
+		if(!fres){
+			Forbidenreturn(ctx)
+		}
+		// logs.Info("ok")
+		return
+	}
 	//get basic auth from header
-	 authstr := ctx.Input.Header("Authorization")
-	 if(len(authstr)<=0){
-		Forbidenreturn(ctx)
-	 }
-	 fres:=Filter_account(authstr)
-	 if(!fres){
-		 Forbidenreturn(ctx)
-	 }
-
+	//  authstr := ctx.Input.Header("Authorization")
+	// //  logs.Info(authstr)
+	//  if(len(authstr)<=0){
+	// 	Forbidenreturn(ctx)
+	//  }
+	//  fres:=Filter_account(authstr)
+	//  if(!fres){
+	// 	 Forbidenreturn(ctx)
+	//  }
+	Forbidenreturn(ctx)
 }
 //return forbiden if user not login
 func Forbidenreturn(ctx *context.Context){
@@ -129,13 +143,14 @@ func Forbidenreturn(ctx *context.Context){
    
 }
 //check account valid
-func Filter_account(authstr string)(bool){
-	autharr := strings.Split(authstr, ":")
-	//check array length
-	if(len(autharr)!=2){
-		return false
-	}
-	apiId,_:=models.DefaultApiauth.GetApiAuth(autharr[1],autharr[2])
+func Filter_account(username string,pass string)(bool){
+	// autharr := strings.Split(authstr, ":")
+	// //check array length
+	// if(len(autharr)!=2){
+	// 	return false
+	// }
+	// logs.Info(autharr)
+	apiId,_:=models.DefaultApiauth.GetApiAuth(username,pass)
 	if(apiId>0){
 		return true
 	}else{

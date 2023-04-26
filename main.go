@@ -39,8 +39,9 @@ func main() {
 			AllowCredentials: true,
 		}))
 		}
-
-	beego.InsertFilter("/*", beego.BeforeExec, controllers.Filter_user)
+	
+		beego.InsertFilter("/test/*", beego.BeforeExec, controllers.Filter_user)	
+	beego.InsertFilter("/admin/*", beego.BeforeExec, controllers.Filter_user)
 	beego.InsertFilter("/api/*", beego.BeforeExec, controllers.Filter_basic)
 
 	//beego.InsertFilter("*", beego.BeforeRouter, controllers.Allow_origins)

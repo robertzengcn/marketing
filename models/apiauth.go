@@ -1,7 +1,11 @@
 package models
-import(
+
+import (
+	"marketing/utils"
 	"time"
+	"strings"
 	"github.com/beego/beego/v2/client/orm"
+	// "github.com/beego/beego/v2/core/logs"
 )
 var DefaultApiauth *Apiauth
 
@@ -24,11 +28,16 @@ func init() {
 
 //get api data id by username and password
 func (u *Apiauth)GetApiAuth(username string,password string) (int64, error) {
+	pass:=utils.Md5V2(password)
+	// logs.Info(username)
+	// logs.Info(pass)
 	o := orm.NewOrm()
 	var apiauth Apiauth
-	err := o.QueryTable(new(Apiauth)).Filter("UserName", username).Filter("Password", password).One(&apiauth, "Id")
+	err := o.QueryTable(new(Apiauth)).Filter("user_name", strings.TrimSpace(username)).Filter("password", strings.TrimSpace(pass)).One(&apiauth,"id")
+	// logs.Error(err)
 	if err != nil {
 		return 0, err
 	}
+	// logs.Info(apiauth.Id)
 	return apiauth.Id, nil
 }

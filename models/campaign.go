@@ -14,7 +14,9 @@ type Campaign struct {
 	CampaignName    string    `orm:"size(100)"`
 	// EmailTpl   *EmailTpl	`orm:"rel(fk);on_delete(do_nothing)"`
 	Tags string `orm:"type(text);null"` //the tag use to fetch keyword
+	Types string  `orm:"size(20);null"` //the type of campaign, email, social
 }
+
 
 func (u *Campaign) TableName() string {
 	return "campaign"
@@ -33,11 +35,12 @@ func init() {
 }
 
 ///create campaign with name
-func (u *Campaign)CreateCampaign(username string,tags string) (id int64, err error) {
+func (u *Campaign)CreateCampaign(username string,tags string,types string) (id int64, err error) {
 	o := orm.NewOrm()
 	var us Campaign
 	us.CampaignName = username
 	us.Tags=tags
+	us.Types=types
 	id, err = o.Insert(&us)
 		return id,err
 }
@@ -63,13 +66,3 @@ func (u *Campaign)FindCambyid(id int64)(*Campaign,error){
 	return &campaign,err
 
 } 
-///get social account relation with campaign use CampaignId
-func  (u *Campaign)GetSocialAccount(id int64)([]SocialAccount,error){
-	o := orm.NewOrm()
-	var socialAccount []SocialAccount
-	_, err := o.QueryTable(new(SocialAccount)).Filter("campaign_id", id).All(&socialAccount, "id", "campaign_id", "user_name", "pass_word", "socialplatform_id", "createtime")
-	if err != nil {
-		return nil, err
-	}
-	return socialAccount, nil
-}
