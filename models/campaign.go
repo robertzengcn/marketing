@@ -15,6 +15,7 @@ type Campaign struct {
 	// EmailTpl   *EmailTpl	`orm:"rel(fk);on_delete(do_nothing)"`
 	Tags string `orm:"type(text);null"` //the tag use to fetch keyword
 	Types string  `orm:"size(20);null"` //the type of campaign, email, social
+	Disable int `orm:"default(0)"` //0: disabled, 1: enabled
 }
 
 
@@ -66,3 +67,16 @@ func (u *Campaign)FindCambyid(id int64)(*Campaign,error){
 	return &campaign,err
 
 } 
+/// list campaign by type
+func (u *Campaign)ListCambytype(types string,start int,limitNum int)([]Campaign,error){
+	o := orm.NewOrm()
+	var cam []Campaign
+	count, e := o.QueryTable(new(Campaign)).Filter("types",types).Filter("disable",0).Limit(limitNum,start).All(&cam, "campaign_id", "campaign_name","tags","types")
+	if e != nil {
+		return nil, e
+	}
+	if count <= 0 {
+		return nil, errors.New("nothing found")
+	}
+	return cam, nil
+}
