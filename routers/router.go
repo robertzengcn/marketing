@@ -50,6 +50,7 @@ func init() {
 	beego.NSRouter("/schedule/list", &controllers.ScheduleController{}, "get:ListSchedule"),
 	beego.NSRouter("/socialcampaign/create", &controllers.CampaignController{}, "post:CreateSocialAccount"),
 	beego.NSRouter("/getsobyCam", &controllers.CampaignController{}, "get:GetSocialAccount"),
+
 	//beego.Router("/getsobyCam", &controllers.CampaignController{}, "get:GetSocialAccount")
 )
 beego.AddNamespace(admin)
@@ -81,6 +82,8 @@ beego.AddNamespace(admin)
 		),
 		//get socoial account by campaign id
 		beego.NSRouter("/getsobyCam", &controllers.CampaignController{}, "get:GetSocialAccount"),
+		beego.NSRouter("/listsoCampaign", &controllers.SocialController{}, "get:Listsocialcampaigin"),
+		beego.NSRouter("/listsotask", &controllers.SocialController{}, "get:Getsocialtasklist"),
 	)
 	beego.AddNamespace(api)
 
