@@ -33,7 +33,7 @@ func (u *SerpLink) SavedataDb(serplink *SerpLink) (int64, error) {
 	o := orm.NewOrm()
 	qs := o.QueryTable(new(SerpLink))
 	var serplinkVar SerpLink
-	err := qs.Filter("domain", serplink.Domain).Filter("link", serplink.Link).One(serplinkVar)
+	err := qs.Filter("domain", serplink.Domain).Filter("link", serplink.Link).One(&serplinkVar)
 	var sid int64
 	var oerr error
 	if err == orm.ErrNoRows {
