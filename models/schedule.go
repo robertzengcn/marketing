@@ -92,7 +92,7 @@ func (u *Schedule)Createtask(scheduleId int64)(int64,error){
 	taskstatusModel := TaskStatus{Id: 1}
 
 	taskVar:=Task{
-		TaskName: "schedule create task "+currentTime.Format("2006.01.02 15:04:05"),
+		TaskName: "schedule create task "+currentTime.Format("2006-01-02 15:04:05"),
 		TaskStatus: &taskstatusModel,
 		CampaignId: campaignVar,
 	}

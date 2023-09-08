@@ -212,7 +212,7 @@ func (u *Keyword)Getkeywordbytag(tagsArr []string,num int)([]*Keyword,error){
 	for _,v:=range keywordArrs{
 		logs.Info(v)
 	qs.Filter("keyword", v.Keyword).Update(orm.Params{
-		"used_time": currentTime.Format("2006.01.02 15:04:05"),
+		"used_time": currentTime.Format("2006-01-02 15:04:05"),
 	})
 	}
 

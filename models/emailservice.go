@@ -182,7 +182,7 @@ func (u *EmailService) Updatesendtime(sid int64) (int64, error) {
 	qs := o.QueryTable(u)
 	currentTime := time.Now()
 	return qs.Filter("id", sid).Update(orm.Params{
-		"usetime": currentTime.Format("2006.01.02 15:04:05"),
+		"usetime": currentTime.Format("2006-01-02 15:04:05"),
 	})
 }
 //disable email account

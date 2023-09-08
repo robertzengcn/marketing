@@ -6,6 +6,7 @@ import (
 	"strings"
 	"github.com/beego/beego/v2/client/orm"
 	// "github.com/beego/beego/v2/core/logs"
+	"strconv"
 )
 var DefaultApiauth *Apiauth
 
@@ -28,15 +29,23 @@ func init() {
 
 //get api data id by username and password
 func (u *Apiauth)GetApiAuth(username string,password string) (int64, error) {
+	rediskey:="apiauth:"+utils.Md5V2(username+":"+password)
 	pass:=utils.Md5V2(password)
-	// logs.Info(username)
-	// logs.Info(pass)
+	
+	//check key exist in redis first
+	redisvalue,_:=utils.GetStr(rediskey)
+	expectval,_:=strconv.ParseInt(redisvalue,10,64)
+	if(expectval>0){
+		return expectval,nil
+	}
 	o := orm.NewOrm()
 	var apiauth Apiauth
 	err := o.QueryTable(new(Apiauth)).Filter("user_name", strings.TrimSpace(username)).Filter("password", strings.TrimSpace(pass)).One(&apiauth,"id")
-	// logs.Error(err)
+	
 	if err != nil {
 		return 0, err
+	}else{
+		utils.SetStr(rediskey,strconv.FormatInt(apiauth.Id,10),time.Hour*1)
 	}
 	// logs.Info(apiauth.Id)
 	return apiauth.Id, nil

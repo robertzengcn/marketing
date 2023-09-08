@@ -27,7 +27,8 @@ type Task struct {
 	TaskName   string      `orm:"size(150)" valid:"Required"`
 	TaskStatus *TaskStatus `orm:"rel(fk);on_delete(do_nothing)"`
 	// EmailTpl    *EmailTpl   `orm:"rel(fk);on_delete(do_nothing)" valid:"Required;"`
-	CampaignId  *Campaign `orm:"rel(fk);on_delete(do_nothing)" valid:"Required;"`
+	CampaignId  *Campaign `orm:"rel(fk);on_delete(do_nothing);column(campaign_id)" valid:"Required;"`
+	// ExtaInfo    *TaskExtaInfo `orm:"rel(fk);on_delete(do_nothing)"`
 	CreatedTime time.Time `orm:"null;auto_now_add;type(datetime)"`
 	UpdateTime  time.Time `orm:"null;auto_now;type(datetime)"`
 }
