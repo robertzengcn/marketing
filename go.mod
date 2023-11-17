@@ -10,6 +10,7 @@ require (
 	github.com/elazarl/goproxy v0.0.0-20221015165544-a0805db90819 // indirect
 	github.com/go-redis/redis/v7 v7.4.1 // indirect
 	github.com/go-sql-driver/mysql v1.7.0
+	github.com/golang-jwt/jwt/v5 v5.1.0 // indirect
 	github.com/google/uuid v1.3.0
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/korovkin/limiter v0.0.0-20221015170604-22eb1ceceddc

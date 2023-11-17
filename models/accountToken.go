@@ -4,7 +4,9 @@ import (
 	"github.com/beego/beego/v2/client/orm"
 	_ "github.com/go-sql-driver/mysql"
 	"time"
-	guuid "github.com/google/uuid"
+	// guuid "github.com/google/uuid"
+	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/beego/beego/v2/core/config"
 )
 var DefaultAccountToken *AccountToken
 type AccountToken struct{
@@ -13,6 +15,9 @@ type AccountToken struct{
 	Account   *Account  `orm:"rel(fk);on_delete(do_nothing)"`
 	TokenExpired   time.Time `orm:"type(datetime)"`
 }
+
+
+
 func (u *AccountToken) TableEngine() string {
 	return "MYISAM"
 } 
@@ -28,7 +33,18 @@ func init() {
 }
 ///gen account token
 func (u *AccountToken) GenAccounttoken(account *Account) (token string,err error){
-	token=guuid.NewString()
+	//token=guuid.NewString()
+	cliams:=jwt.MapClaims{
+		"account_id": account.Id,
+		"email": account.Email,
+		"nbf": time.Now().Unix(),
+		"exp": time.Now().AddDate(0, 0, 2).Unix(),
+		"iat": time.Now().Unix(),
+	}
+	token,terr:=u.GenAccounttokenjwt(&cliams)
+	if(terr!=nil){
+		return "", terr
+	}
 	o := orm.NewOrm()
 	var ac AccountToken
 	ac.Account=account
@@ -38,6 +54,19 @@ func (u *AccountToken) GenAccounttoken(account *Account) (token string,err error
 	_, err = o.Insert(&ac)
 	return token,err
 }
+//generate token use jwt token
+func (u *AccountToken) GenAccounttokenjwt(claims *jwt.MapClaims) (string,error){
+	token_val, terr := config.String("jwt_token_key")
+	if(terr!=nil){
+		return "", terr
+	}
+	token_sec:=[]byte(token_val)
+	tokens := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// Sign and get the complete encoded token as a string using the secret
+	tokenString, err := tokens.SignedString(token_sec)
+	return tokenString,err
+}
+
 ///check account token
 func (u *AccountToken) CheckAccounttoken(token string) (accounttoken *AccountToken,err error){
 	o := orm.NewOrm()
