@@ -46,11 +46,19 @@ func (c *CampaignController) CreateCampaign() {
 
 	campaign_name := c.GetString("campaign_name")
 	tag := c.GetString("tag")
-	cts := c.GetString("type", "email")
-	typearr := []string{"email", "social"}
-	if !utils.Contains(typearr, cts) {
-		c.ErrorJson(20230403100448, "type incorrect", nil)
+	// cts := c.GetString("type", "email")
+	// typearr := []string{"email", "social"}
+	// if !utils.Contains(typearr, cts) {
+	// 	c.ErrorJson(20230403100448, "type incorrect", nil)
+	// }
+	cts,cterr:=c.GetInt16("type")
+	if(cterr!=nil){
+		c.ErrorJson(20231128093656, cterr.Error(), nil)
 	}
+	if(cts<=0){
+		c.ErrorJson(20231128093759, "type incorrect", nil)
+	}
+
 	campaing_id, err := models.DefaultCampaign.CreateCampaign(campaign_name, tag, cts)
 
 	if err != nil {

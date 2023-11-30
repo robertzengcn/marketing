@@ -92,7 +92,16 @@ beego.AddNamespace(admin)
 		beego.NSRouter("/taskkeyword", &controllers.SocialController{}, "get:Gettaskkeyword"),
 		beego.NSRouter("/savesocialtask", &controllers.SocialController{}, "post:Savesocialtask"),
 		beego.NSRouter("/updatescrapeprotime", &controllers.ScraperinfoController{}, "post:Updatescrapyinfoprocess"),
+		// beego.NSRouter("/login", &controllers.AccountController{}, "post:Validaccount"),
 	)
 	beego.AddNamespace(api)
+
+	user := beego.NewNamespace("/user",
+	beego.NSInclude(
+		&controllers.TestController{},
+	),
+	beego.NSRouter("/login", &controllers.AccountController{}, "post:Validaccount"),
+	)
+	beego.AddNamespace(user)
 
 }

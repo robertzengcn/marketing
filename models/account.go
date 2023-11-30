@@ -8,7 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"time"
 	"marketing/utils"
-	//"github.com/beego/beego/v2/core/logs"
+	"github.com/beego/beego/v2/core/logs"
 )
 
 type Account struct {
@@ -16,6 +16,7 @@ type Account struct {
 	Name    string    `orm:"size(100)"`
 	Password  string    `orm:"size(255)"`
 	Email   string    `orm:"size(150)"`
+	Roles  []*AccountRole `orm:"rel(m2m);rel_table(mk_accout_roles_list)"`
 	Created time.Time `orm:"null;auto_now_add;type(datetime)"`
 	Updated time.Time `orm:"null;auto_now;type(datetime)"`
 }
@@ -88,10 +89,12 @@ func (u *Account)AddAccount(username string, email string,password string) (id i
 	// }
 }
 ///check is account valid
-func (u *Account)Validaccount(username string, pass string) (account Account, err error) {
+func (u *Account)Validaccount(username string, pass string) (Account, error) {
 	o := orm.NewOrm()
-	//l := logs.GetLogger()
+	l := logs.GetLogger()
 	epass:=u.EncryptionPass(pass)
+	var account Account
+	var err error
 	//l.Println(epass)
 	qs := o.QueryTable(new(Account))
 	if(utils.ValidEmail(username)){
@@ -101,7 +104,21 @@ func (u *Account)Validaccount(username string, pass string) (account Account, er
 		}
 	// account = Account{Name: username,Email:email}
 	// err=o.Read(&account)
-	
+	if(err==nil){
+		//get account Roles
+		accountrolesmodel:=AccountRolesList{}
+		rules,erules:=accountrolesmodel.GetAccountRoleByAccountId(account.Id)
+		if(erules!=nil){
+		l.Println(erules)
+		//loop roles
+		
+		}else{
+			account.Roles=rules
+			// l.Println(erules)
+			return account, erules
+		}
+	}
+	l.Println(account)
 	return account,err	
 }
 ///encryption user password
@@ -112,6 +129,24 @@ func (u *Account)EncryptionPass(pass string)(string){
 func (u *Account)GetAccountbyid(uid int64) (account Account, err error) {
 	o := orm.NewOrm()
 	account = Account{Id: uid}
-	err=o.Read(&account,"Id","Name","Email")
+	err=o.Read(&account,"Id","Name","Email","Roles")
 	return account,err	
 }
+//check account role is admin
+func (u *Account)IsAdmin(uid int64) (bool) {
+	o := orm.NewOrm()
+	account := Account{Id: uid}
+	err:=o.Read(&account,"Id","Name","Email","Roles")
+	if(err!=nil){
+		return false
+	}
+	for _, role := range account.Roles {
+		if(role.Name=="admin"){
+			return true
+		}
+	}
+	return false
+}
+
+
+

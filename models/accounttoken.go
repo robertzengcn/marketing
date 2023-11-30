@@ -34,13 +34,23 @@ func init() {
 ///gen account token
 func (u *AccountToken) GenAccounttoken(account *Account) (token string,err error){
 	//token=guuid.NewString()
+	var accountrolearr []string
 	cliams:=jwt.MapClaims{
 		"account_id": account.Id,
 		"email": account.Email,
+		"roles": accountrolearr,
 		"nbf": time.Now().Unix(),
 		"exp": time.Now().AddDate(0, 0, 2).Unix(),
 		"iat": time.Now().Unix(),
 	}
+
+	if(account.Roles!=nil){
+		for _,element:=range account.Roles{
+			accountrolearr=append(accountrolearr,element.Name)
+		}
+		cliams["roles"]=accountrolearr
+	}
+	
 	token,terr:=u.GenAccounttokenjwt(&cliams)
 	if(terr!=nil){
 		return "", terr
@@ -81,6 +91,8 @@ func (u *AccountToken) CheckAccounttoken(token string) (accounttoken *AccountTok
 	}
 
 }
+
+
 
 
 

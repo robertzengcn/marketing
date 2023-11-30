@@ -45,6 +45,7 @@ func (c *AccountController) Validaccount() {
 		c.ErrorJson(202108031641149,err.Error(),nil)
 	} else {
 		c.SetSession("uid", account.Id)
+		//record login log
 		models.DefaultAccountLoginLog.AccountLogin(&account)
 		token ,tokenerr:=models.DefaultAccountToken.GenAccounttoken(&account)
 		if(tokenerr!=nil){

@@ -3,7 +3,7 @@ package controllers
 import (
 	"encoding/json"
 
-	//"github.com/beego/beego/v2/core/logs"
+	"github.com/beego/beego/v2/core/logs"
 	//  "github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/beego/beego/v2/server/web/context"
@@ -75,8 +75,8 @@ func Valid_beartoken(authstr string)(bool){
 }
 
 func Filter_user(ctx *context.Context) {
-	s := []string{"/admin/login", 
-	"/admin/login/accountlogin",
+	s := []string{"/api/login", 
+	// "/admin/login/accountlogin",
 	"/admin/healthcheck",
 	// "api/getsobyCam",
 	} //defined url that not need to valid user login
@@ -89,6 +89,7 @@ func Filter_user(ctx *context.Context) {
 	// l.Println(ok)
 	if !ok { //user not login
 		if !utils.Contains(s, ctx.Request.RequestURI) {
+			// logs.Info("the request url is: "+ctx.Request.RequestURI)
 			//check bearer token
 			authstr := ctx.Input.Header("Authorization")
 			if(len(authstr)>0){
@@ -113,7 +114,7 @@ func Filter_user(ctx *context.Context) {
 //basic Authorization
 func Filter_basic(ctx *context.Context) {
 	username, password, ok :=ctx.Request.BasicAuth()
-	// logs.Info(username)
+	 logs.Info("basic auth check")
 	// logs.Info(password)
 	if ok {
 		fres:=Filter_account(username, password)

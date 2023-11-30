@@ -63,7 +63,7 @@ type SocialTaskEntity struct {
 
 ///list social campaign
 func (c *SocialController) Listsocialcampaigin() {
-	types := c.GetString("types", "social")
+	types,_ := c.GetInt32("types")
 	start, sterr := c.GetInt("start", 0)
 	if sterr != nil {
 		c.ErrorJson(20230525093049, sterr.Error(), nil)
@@ -86,7 +86,7 @@ func (c *SocialController) Listsocialcampaigin() {
 		soentity.CampaignId = campaigns[i].CampaignId
 		soentity.CampaignName = campaigns[i].CampaignName
 		soentity.Tags = campaigns[i].Tags
-		soentity.Types = campaigns[i].Types
+		soentity.Types = campaigns[i].Types.CampaignTypeName
 		tags := strings.Split(campaigns[i].Tags, ",")
 		// extraInfoModel.Getextrainfotaskid(campaigns[i].)
 		keywordArr, kErr := keywordModel.Getkeywordbytag(tags, 5)

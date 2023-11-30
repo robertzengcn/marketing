@@ -14,7 +14,7 @@ type Campaign struct {
 	CampaignName    string    `orm:"size(100)"`
 	// EmailTpl   *EmailTpl	`orm:"rel(fk);on_delete(do_nothing)"`
 	Tags string `orm:"type(text);null"` //the tag use to fetch keyword
-	Types string  `orm:"size(20);null"` //the type of campaign, email, social
+	Types *CampaignType  `orm:"null;rel(fk)"` //the type of campaign, email, social
 	Disable int `orm:"default(0)"` //0: disabled, 1: enabled
 }
 
@@ -36,12 +36,18 @@ func init() {
 }
 
 ///create campaign with name
-func (u *Campaign)CreateCampaign(username string,tags string,types string) (id int64, err error) {
+func (u *Campaign)CreateCampaign(username string,tags string,types int16) (id int64, err error) {
+	//check campaign type is exist
+	var camType CampaignType
 	o := orm.NewOrm()
+	o.QueryTable(new(CampaignType)).Filter("campaign_type_id", types).One(&camType)
+	if(camType.CampaignTypeId<=0){
+		return 0,errors.New("campaign type not exist")
+	}
 	var us Campaign
 	us.CampaignName = username
 	us.Tags=tags
-	us.Types=types
+	us.Types=&camType
 	id, err = o.Insert(&us)
 		return id,err
 }
@@ -68,10 +74,10 @@ func (u *Campaign)FindCambyid(id int64)(*Campaign,error){
 
 } 
 /// list campaign by type
-func (u *Campaign)ListCambytype(types string,start int,limitNum int)([]Campaign,error){
+func (u *Campaign)ListCambytype(types int32,start int,limitNum int)([]Campaign,error){
 	o := orm.NewOrm()
 	var cam []Campaign
-	count, e := o.QueryTable(new(Campaign)).Filter("types",types).Filter("disable",0).Limit(limitNum,start).All(&cam, "campaign_id", "campaign_name","tags","types")
+	count, e := o.QueryTable(new(Campaign)).Filter("types_id",types).Filter("disable",0).Limit(limitNum,start).All(&cam, "campaign_id", "campaign_name","tags","types")
 	if e != nil {
 		return nil, e
 	}

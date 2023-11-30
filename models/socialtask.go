@@ -5,7 +5,7 @@ import (
 )
 type SocialTask struct {
 	Id int64 `orm:"pk;auto"`
-	TaskName string `orm:"size(200);column(task_name))"`
+	TaskName string `orm:"size(200);column(task_name)"`
 	Campaign *Campaign `orm:"rel(fk);on_delete(do_nothing);column(campaign_id)"`
 	Type string `orm:"size(100)"`
 	Disable int `orm:"default(0)"`
@@ -60,7 +60,6 @@ func (u *SocialTask)GetSocialTaskById(id int64) (*SocialTask, error) {
 			socialTask.Campaign.Types=camVar.Types
 			socialTask.Campaign.Disable=camVar.Disable
 		}
-
 	}
 	return &socialTask, err
 }
