@@ -4,13 +4,19 @@ import (
 	// beego "github.com/beego/beego/v2/server/web"
 	"marketing/models"
 	"github.com/beego/i18n"
-	//"github.com/beego/beego/v2/core/logs"
+	"github.com/beego/beego/v2/core/logs"
+	"strconv"
 )
-type AccountResponse struct{
+type AccountTokenResponse struct{
 	// Id int64
 	// Name    string
 	// Email   string
 	Token   string
+}
+type AccountResp struct{
+	Name string `json:"name"`
+	Email string `json:"email"`
+	Roles []string `json:"roles"`
 }
 type AccountController struct {
 	BaseController
@@ -51,7 +57,7 @@ func (c *AccountController) Validaccount() {
 		if(tokenerr!=nil){
 			c.ErrorJson(20211201164342,tokenerr.Error(),nil)
 		}
-		accountRes :=AccountResponse{
+		accountRes :=AccountTokenResponse{
 			// Id:account.Id,
 			// Name:account.Name,
 			// Email: account.Email,
@@ -65,17 +71,30 @@ func (c *AccountController) Validaccount() {
 ///echo user info by session
 func (c *AccountController)Accountinfo(){
 	uid := c.GetSession("uid")
+	uidint64:=uid.(int64)
+	logs.Info("uid will be"+strconv.FormatInt(uidint64,10))
 	if uid == nil {
 		c.ErrorJson(202302270948,c.Tr("user_not_login"),nil)
 	}
 	accountModel:=models.Account{}
 	//convert uid to int64	
-	uidint64:=uid.(int64)
+	// uidint64:=uid.(int64)
 	acc,aerr:=accountModel.GetAccountbyid(uidint64)
+	var accountrolearr []string
+	if(acc.Roles!=nil){
+		for _,element:=range acc.Roles{
+			accountrolearr=append(accountrolearr,element.Name)
+		}
+		
+	}
+	arsp:=AccountResp{}
+	arsp.Email=acc.Email
+	arsp.Name=acc.Name
+	arsp.Roles=accountrolearr
 	if aerr !=nil {
 		c.ErrorJson(202302270950,aerr.Error(),nil)
 	}
-	c.SuccessJson(acc)
+	c.SuccessJson(arsp)
 }
 
 

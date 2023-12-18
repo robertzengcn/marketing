@@ -5,20 +5,20 @@ import (
 	"errors"
 	"fmt"
 	"github.com/beego/beego/v2/client/orm"
-	_ "github.com/go-sql-driver/mysql"
-	"time"
-	"marketing/utils"
 	"github.com/beego/beego/v2/core/logs"
+	_ "github.com/go-sql-driver/mysql"
+	"marketing/utils"
+	"time"
 )
 
 type Account struct {
-	Id      int64     `orm:"pk;auto"`
-	Name    string    `orm:"size(100)"`
-	Password  string    `orm:"size(255)"`
-	Email   string    `orm:"size(150)"`
-	Roles  []*AccountRole `orm:"rel(m2m);rel_table(mk_accout_roles_list)"`
-	Created time.Time `orm:"null;auto_now_add;type(datetime)"`
-	Updated time.Time `orm:"null;auto_now;type(datetime)"`
+	Id       int64          `orm:"pk;auto"`
+	Name     string         `orm:"size(100)"`
+	Password string         `orm:"size(255)"`
+	Email    string         `orm:"size(150)"`
+	Roles    []*AccountRole `orm:"rel(m2m);rel_table(mk_accout_roles_list)"`
+	Created  time.Time      `orm:"null;auto_now_add;type(datetime)"`
+	Updated  time.Time      `orm:"null;auto_now;type(datetime)"`
 }
 
 func (u *Account) TableName() string {
@@ -32,7 +32,7 @@ func (u *Account) TableEngine() string {
 
 func init() {
 	// set default database
-	orm.RegisterModelWithPrefix("mk_",new(Account))
+	orm.RegisterModelWithPrefix("mk_", new(Account))
 	// create table
 	// orm.RunSyncdb("default", false, true)
 }
@@ -40,11 +40,11 @@ func init() {
 /**
 * query user account data
  */
-func (u *Account)IndexAllAccount(start int,number int) (accounts []Account, err error) {
+func (u *Account) IndexAllAccount(start int, number int) (accounts []Account, err error) {
 	o := orm.NewOrm()
 
 	var us []Account
-	count, e := o.QueryTable(new(Account)).Limit(start,number).All(&us, "Name", "Email")
+	count, e := o.QueryTable(new(Account)).Limit(start, number).All(&us, "Name", "Email")
 	if e != nil {
 		return nil, e
 	}
@@ -70,83 +70,103 @@ func (u *Account)IndexAllAccount(start int,number int) (accounts []Account, err 
 // }
 
 //query all rows
-func (u *Account)SelectAccountlist() (accounts []Account, err error) {
+func (u *Account) SelectAccountlist() (accounts []Account, err error) {
 	o := orm.NewOrm()
 	var users []Account
 	_, errs := o.QueryTable("gotest_account").All(&users)
 	return users, errs
 }
+
 ///add account
-func (u *Account)AddAccount(username string, email string,password string) (id int64, err error) {
+func (u *Account) AddAccount(username string, email string, password string) (id int64, err error) {
 	o := orm.NewOrm()
 	var us Account
 	us.Name = username
 	us.Email = email
-	us.Password=u.EncryptionPass(password)
+	us.Password = u.EncryptionPass(password)
 	id, err = o.Insert(&us)
 	// if err == nil {
-		return id,err
+	return id, err
 	// }
 }
+
 ///check is account valid
-func (u *Account)Validaccount(username string, pass string) (Account, error) {
+func (u *Account) Validaccount(username string, pass string) (Account, error) {
 	o := orm.NewOrm()
 	l := logs.GetLogger()
-	epass:=u.EncryptionPass(pass)
+	epass := u.EncryptionPass(pass)
 	var account Account
 	var err error
 	//l.Println(epass)
 	qs := o.QueryTable(new(Account))
-	if(utils.ValidEmail(username)){
-		err =qs.Filter("email", username).Filter("password", epass).One(&account,"Id","Name","Email")
-	}else{
-	err =qs.Filter("name", username).Filter("password", epass).One(&account,"Id","Name","Email")
-		}
+	if utils.ValidEmail(username) {
+		err = qs.Filter("email", username).Filter("password", epass).One(&account, "Id", "Name", "Email")
+	} else {
+		err = qs.Filter("name", username).Filter("password", epass).One(&account, "Id", "Name", "Email")
+	}
 	// account = Account{Name: username,Email:email}
 	// err=o.Read(&account)
-	if(err==nil){
+	if err == nil {
+		u.GetAccountrole(&account)
 		//get account Roles
-		accountrolesmodel:=AccountRolesList{}
-		rules,erules:=accountrolesmodel.GetAccountRoleByAccountId(account.Id)
-		if(erules!=nil){
-		l.Println(erules)
-		//loop roles
-		
-		}else{
-			account.Roles=rules
-			// l.Println(erules)
-			return account, erules
-		}
+		// accountrolesmodel := AccountRolesList{}
+		// rules, erules := accountrolesmodel.GetAccountRoleByAccountId(account.Id)
+		// if erules != nil {
+		// 	l.Println(erules)
+		// 	//loop roles
+
+		// } else {
+		// 	account.Roles = rules
+		// 	// l.Println(erules)
+		// 	return account, erules
+		// }
 	}
 	l.Println(account)
-	return account,err	
+	return account, err
 }
+
+//get account role
+func (u *Account) GetAccountrole(account *Account) *Account {
+	//get account Roles
+	accountrolesmodel := AccountRolesList{}
+	rules, erules := accountrolesmodel.GetAccountRoleByAccountId(account.Id)
+	if erules == nil {
+
+		account.Roles = rules
+
+	}
+	return account
+}
+
 ///encryption user password
-func (u *Account)EncryptionPass(pass string)(string){
+func (u *Account) EncryptionPass(pass string) string {
 	return utils.Md5V2(pass)
 }
+
 ///get account by uid
-func (u *Account)GetAccountbyid(uid int64) (account Account, err error) {
+func (u *Account) GetAccountbyid(uid int64) (account Account, err error) {
 	o := orm.NewOrm()
-	account = Account{Id: uid}
-	err=o.Read(&account,"Id","Name","Email","Roles")
-	return account,err	
+	account = Account{}
+	o.QueryTable(&account).Filter("id", uid).One(&account, "Id", "Name", "Email")
+	if err == nil {
+		//get account roles
+		u.GetAccountrole(&account)
+	}
+	return account, err
 }
+
 //check account role is admin
-func (u *Account)IsAdmin(uid int64) (bool) {
+func (u *Account) IsAdmin(uid int64) bool {
 	o := orm.NewOrm()
 	account := Account{Id: uid}
-	err:=o.Read(&account,"Id","Name","Email","Roles")
-	if(err!=nil){
+	err := o.Read(&account, "Id", "Name", "Email", "Roles")
+	if err != nil {
 		return false
 	}
 	for _, role := range account.Roles {
-		if(role.Name=="admin"){
+		if role.Name == "admin" {
 			return true
 		}
 	}
 	return false
 }
-
-
-

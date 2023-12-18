@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/beego/beego/v2/core/logs"
 	//  "github.com/beego/beego/v2/core/logs"
@@ -61,17 +62,22 @@ func (c *BaseController) ErrorJson(code int, msg string, data interface{}) {
 	c.ServeJSON() //对json进行序列化输出
 	c.StopRun()
 }
-///valid bearer token
-func Valid_beartoken(authstr string)(bool){
+///valid bearer token,return account
+func Valid_beartoken(authstr string)(*models.AccountToken,error){
 	
 	splitToken := strings.Split(authstr, "Bearer ")
 	if(len(splitToken)<2){
-		return false
+		return nil,errors.New("token is empty")
 	}
 	token:=splitToken[1]
 	accountTokenModel:=models.AccountToken{}
+	return accountTokenModel.CheckAccounttoken(token)
+}
+///get account by token
+func GetAccountbytoken(token string)(models.Account,error){
+	accountTokenModel:=models.AccountToken{}
 	atoken,_:=accountTokenModel.CheckAccounttoken(token)
-	return atoken!=nil
+	return *atoken.Account,nil
 }
 
 func Filter_user(ctx *context.Context) {
@@ -83,21 +89,28 @@ func Filter_user(ctx *context.Context) {
 	// l := logs.GetLogger()
 	//defined basic auth array
 
-	_, ok := ctx.Input.Session("uid").(int64)
+	// _, ok := ctx.Input.Session("uid").(int64)
 
 	// l.Println(id)
 	// l.Println(ok)
-	if !ok { //user not login
+	// if !ok { //user not login
 		if !utils.Contains(s, ctx.Request.RequestURI) {
 			// logs.Info("the request url is: "+ctx.Request.RequestURI)
 			//check bearer token
 			authstr := ctx.Input.Header("Authorization")
+			logs.Info("authstr is: "+authstr) 
+			logs.Info(authstr)
 			if(len(authstr)>0){
-				bres:=Valid_beartoken(authstr)
-				if(bres){
+				acctoken,accerr:=Valid_beartoken(authstr)
+				
+				if(accerr==nil&&acctoken!=nil){
+					// logs.Info("uid is"+fmt.Sprintf("%d", acctoken.Account.Id))
+					ctx.Output.Session("uid", acctoken.Account.Id)
 					return
 				}
 			}
+			//change http response to 403
+
 				jsonData := make(map[string]interface{}, 3)
 				
 				jsonData["status"]=false
@@ -107,9 +120,9 @@ func Filter_user(ctx *context.Context) {
 				returnJSON, _ := json.Marshal(jsonData)
 				ctx.ResponseWriter.Header().Set("Content-Type", "application/json;charset=UTF-8;")
 				ctx.ResponseWriter.Write(returnJSON)
-			
+				ctx.ResponseWriter.WriteHeader(403)
 		}
-	}
+	// }
 }
 //basic Authorization
 func Filter_basic(ctx *context.Context) {

@@ -46,7 +46,7 @@ func init() {
 	// beego.Router("/welcome", &controllers.CampaignController{}, "get:Welcome")
 	beego.NSRouter("/healthcheck", &controllers.MainController{}, "get:Healthcheck"),
 	// beego.Router("/social/create", &controllers.SocialController{}, "post:CreateSocialAccount")
-	beego.NSRouter("/user/info", &controllers.AccountController{}, "get:Accountinfo"),
+	
 	beego.NSRouter("/schedule/list", &controllers.ScheduleController{}, "get:ListSchedule"),
 	beego.NSRouter("/socialcampaign/create", &controllers.CampaignController{}, "post:CreateSocialAccount"),
 	beego.NSRouter("/getsobyCam", &controllers.CampaignController{}, "get:GetSocialAccount"),
@@ -74,7 +74,7 @@ beego.AddNamespace(admin)
 		beego.NSRouter("/getemailser", &controllers.TestController{}, "post:Getemailbycampaign"),
 		beego.NSRouter("/changeproxy", &controllers.TestController{}, "get:ChangeProxy"),
 		beego.NSRouter("/handleproxy", &controllers.TestController{}, "get:GetProxylist"),
-
+		beego.NSRouter("/campaign", &controllers.CampaignController{}, "get:ListCampaign"),
 	
 	)
 	beego.AddNamespace(ns)
@@ -93,6 +93,8 @@ beego.AddNamespace(admin)
 		beego.NSRouter("/savesocialtask", &controllers.SocialController{}, "post:Savesocialtask"),
 		beego.NSRouter("/updatescrapeprotime", &controllers.ScraperinfoController{}, "post:Updatescrapyinfoprocess"),
 		// beego.NSRouter("/login", &controllers.AccountController{}, "post:Validaccount"),
+		beego.NSRouter("/campaign", &controllers.CampaignController{}, "get:ListCampaign"),
+		beego.NSRouter("/user/info", &controllers.AccountController{}, "get:Accountinfo"),
 	)
 	beego.AddNamespace(api)
 

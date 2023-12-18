@@ -13,9 +13,11 @@ type Campaign struct {
 	CampaignId      int64     `orm:"pk;auto"`
 	CampaignName    string    `orm:"size(100)"`
 	// EmailTpl   *EmailTpl	`orm:"rel(fk);on_delete(do_nothing)"`
+	CampaignDescription string `orm:"type(text);null"`
 	Tags string `orm:"type(text);null"` //the tag use to fetch keyword
 	Types *CampaignType  `orm:"null;rel(fk)"` //the type of campaign, email, social
 	Disable int `orm:"default(0)"` //0: disabled, 1: enabled
+	AccountId *Account `orm:"rel(fk);on_delete(do_nothing);column(account_id)"`
 }
 
 
@@ -52,10 +54,10 @@ func (u *Campaign)CreateCampaign(username string,tags string,types int16) (id in
 		return id,err
 }
 /// show all campaign
-func (u *Campaign)ListCampaign(start int,limitNum int)([]Campaign,error){
+func (u *Campaign)ListCampaign(start int,limitNum int,accountId int64)([]Campaign,error){
 	o := orm.NewOrm()
 	var cam []Campaign
-	count, e := o.QueryTable(new(Campaign)).Limit(limitNum,start).All(&cam, "campaign_id", "campaign_name","tags")
+	count, e := o.QueryTable(new(Campaign)).Filter("account_id",accountId).Limit(limitNum,start).All(&cam, "campaign_id", "campaign_name","tags")
 	if e != nil {
 		return nil, e
 	}
@@ -85,4 +87,13 @@ func (u *Campaign)ListCambytype(types int32,start int,limitNum int)([]Campaign,e
 		return nil, errors.New("nothing found")
 	}
 	return cam, nil
+}
+///count campagin number
+func (u *Campaign)CountCampaign()(int64,error){
+	o := orm.NewOrm()
+	count, e := o.QueryTable(new(Campaign)).Count()
+	if e != nil {
+		return 0, e
+	}
+	return count, nil
 }

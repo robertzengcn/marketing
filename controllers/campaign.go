@@ -32,6 +32,11 @@ type SoProxy struct {
 	Pass string `json:"pass"`
 }
 
+type CampaignlistResponse struct {
+	Data []models.Campaign `json:"data"`
+	Num  int64             `json:"num"`
+}
+
 // func (c *CampaignController) Prepare() {
 //     c.EnableXSRF = false
 // }
@@ -92,15 +97,24 @@ func (c *CampaignController) CreateCampaign() {
 
 //list campaign use request
 func (c *CampaignController) ListCampaign() {
-	start, _ := c.GetInt("start", 0)
-	num, _ := c.GetInt("number", 10)
-
-	campagins, err := models.DefaultCampaign.ListCampaign(start, num)
+	start, _ := c.GetInt("page", 0)
+	num, _ := c.GetInt("size", 10)
+	uid := c.GetSession("uid")
+	accountId:=uid.(int64)
+	campagins, err := models.DefaultCampaign.ListCampaign(start, num,accountId)
 	if err != nil {
 		c.ErrorJson(20211208153839, err.Error(), nil)
-
 	}
-	c.SuccessJson(campagins)
+	//count compaign number
+	campaginNum,camNumerr:=models.DefaultCampaign.CountCampaign()
+	if(camNumerr!=nil){
+		c.ErrorJson(20211208153942, camNumerr.Error(), nil)
+	}
+	CampaignlistResponse := CampaignlistResponse{
+		Data: campagins,
+		Num:  campaginNum,
+	}
+	c.SuccessJson(CampaignlistResponse)
 }
 
 //get socail account relation with campaign use campaign Id
