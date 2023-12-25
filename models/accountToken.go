@@ -39,16 +39,17 @@ func (u *AccountToken) GenAccounttoken(account *Account) (token string,err error
 	return token,err
 }
 ///check account token
-func (u *AccountToken) CheckAccounttoken(token string) (accounttoken *AccountToken,err error){
+func (u *AccountToken) CheckAccounttoken(token string) (*AccountToken,error){
 	o := orm.NewOrm()
 	accToken := new(AccountToken)
+	accounttoken:=AccountToken{}
 	now := time.Now()
 	nf:=now.Format("2006-01-02 15:04:05")
-	err=o.QueryTable(accToken).Filter("token_val", token).Filter("token_expired__gt", nf).One(&accounttoken)
+	err:=o.QueryTable(accToken).Filter("token_val", token).Filter("token_expired__gt", nf).One(&accounttoken)
 	if(err!=nil){
 		return nil, err
 	}else{
-		return accounttoken,nil
+		return &accounttoken,nil
 	}
 
 }
