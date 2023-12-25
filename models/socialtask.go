@@ -30,10 +30,20 @@ func (u *SocialTask)CreateSocialTask(campaignId int64, taskType string,taskName 
 	return id, err
 }
 //get social task list by campaignId
-func (u *SocialTask)GetSocialTaskList(campaignId int64) ([]*SocialTask, error) {
+func (u *SocialTask)GetSocialTaskList(campaignId int64,page int64,size int64,search string) ([]*SocialTask,int64,error) {
 	o := orm.NewOrm()
 	var socialTask []*SocialTask
-	_, err := o.QueryTable(new(SocialTask)).Filter("disable", 0).Filter("campaign_id", campaignId).All(&socialTask,"id","task_name","type","campaign_id")
+	querySet := o.QueryTable(new(SocialTask)).Filter("disable", 0).Filter("campaign_id", campaignId)
+	if(len(search)>0){
+		querySet=querySet.Filter("task_name__icontains",search)
+	}
+	_,err:=querySet.Limit(size,page).All(&socialTask,"id","task_name","type","campaign_id")
+	
+	// get the search number
+	num,numerr:=u.GetSocialTaskNum(campaignId,search)
+	if(numerr!=nil){
+		return nil,0,numerr
+	}
 	campaigModel:=Campaign{}
 	for _,soci:= range socialTask{
 		campaign,cerr:=campaigModel.FindCambyid(soci.Campaign.CampaignId)
@@ -42,7 +52,19 @@ func (u *SocialTask)GetSocialTaskList(campaignId int64) ([]*SocialTask, error) {
 		}
 		soci.Campaign=campaign
 	}
-	return socialTask, err
+	return socialTask, num,err
+}
+
+//get social task number by campaignId and seach conditon
+func (u *SocialTask)GetSocialTaskNum(campaignId int64,search string) (int64,error) {
+	o := orm.NewOrm()
+	
+	querySet := o.QueryTable(new(SocialTask)).Filter("disable", 0).Filter("campaign_id", campaignId)
+	if(len(search)>0){
+		querySet=querySet.Filter("task_name__icontains",search)
+	}
+	num,err:=querySet.Count()
+	return num,err
 }
 
 //get social task by id

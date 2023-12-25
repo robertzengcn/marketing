@@ -61,7 +61,12 @@ type SocialTaskEntity struct {
 	ExtraTaskIfo models.TaskExtaInfo `json:"extra_task_info"`
 }
 
-///list social campaign
+type SocialTaskResponse struct {
+	Records []SocialTaskEntity
+	Total   int64
+}
+
+///list social campaign use type
 func (c *SocialController) Listsocialcampaigin() {
 	types,_ := c.GetInt32("types")
 	start, sterr := c.GetInt("start", 0)
@@ -102,18 +107,29 @@ func (c *SocialController) Listsocialcampaigin() {
 		}
 		socials = append(socials, soentity)
 	}
+
 	c.SuccessJson(socials)
 
 }
 
+
 ///get social task list
 func (c *SocialController) Getsocialtasklist() {
 	campagid,_ := c.GetInt64("campaiginId")
+	page,perr:=c.GetInt64("page",0)
+	if(perr!=nil){
+		c.ErrorJson(202312210933114,perr.Error(),nil)
+	}
+	size,serr:=c.GetInt64("size",10)
+	if(serr!=nil){
+		c.ErrorJson(202312210934118,serr.Error(),nil)
+	}
 	if(campagid<=0){
 		c.ErrorJson(202307070932112,"campaign id empty",nil)
 	}
+	searchVal:=c.GetString("search")
 	socialTaskmodel := models.SocialTask{}
-	soTask, soterr := socialTaskmodel.GetSocialTaskList(campagid)
+	soTask,soNum, soterr := socialTaskmodel.GetSocialTaskList(campagid,page,size,searchVal)
 	if soterr != nil {
 		c.ErrorJson(20230526095299, soterr.Error(), nil)
 	}
@@ -144,9 +160,12 @@ func (c *SocialController) Getsocialtasklist() {
 			soentity.ExtraTaskIfo=taskEx
 		}
 		soentityArr = append(soentityArr, soentity)
-
 	}
-	c.SuccessJson(soentityArr)
+	sot:=SocialTaskResponse{
+		Records:soentityArr,
+		Total:soNum,
+	}
+	c.SuccessJson(sot)
 }
 
 func (c *SocialController) Getsocialtaskinfo() {
