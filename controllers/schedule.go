@@ -1,10 +1,8 @@
 package controllers
 
 import (
-
 	"marketing/models"	
 	"github.com/beego/i18n"
-
 )
 
 type ScheduleController struct {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/beego/beego/v2/core/logs"
+	// "github.com/beego/beego/v2/core/logs"
 	//  "github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/beego/beego/v2/server/web/context"
@@ -98,8 +98,8 @@ func Filter_user(ctx *context.Context) {
 			// logs.Info("the request url is: "+ctx.Request.RequestURI)
 			//check bearer token
 			authstr := ctx.Input.Header("Authorization")
-			logs.Info("authstr is: "+authstr) 
-			logs.Info(authstr)
+			// logs.Info("authstr is: "+authstr) 
+			// logs.Info(authstr)
 			if(len(authstr)>0){
 				acctoken,accerr:=Valid_beartoken(authstr)
 				
@@ -127,7 +127,7 @@ func Filter_user(ctx *context.Context) {
 //basic Authorization
 func Filter_basic(ctx *context.Context) {
 	username, password, ok :=ctx.Request.BasicAuth()
-	 logs.Info("basic auth check")
+	//  logs.Info("basic auth check")
 	// logs.Info(password)
 	if ok {
 		fres:=Filter_account(username, password)

@@ -95,6 +95,11 @@ beego.AddNamespace(admin)
 		// beego.NSRouter("/login", &controllers.AccountController{}, "post:Validaccount"),
 		beego.NSRouter("/campaign", &controllers.CampaignController{}, "get:ListCampaign"),
 		beego.NSRouter("/user/info", &controllers.AccountController{}, "get:Accountinfo"),
+		//list social task type api
+		beego.NSRouter("/socialtasktype", &controllers.SocialController{}, "get:Listsocialtasktype"),
+		beego.NSRouter("/tag", &controllers.TagController{}, "get:ListTag"),
+		beego.NSRouter("/getkeywordtag", &controllers.KeywordsController{}, "post:ListKeywordsbytag"),
+	
 	)
 	beego.AddNamespace(api)
 

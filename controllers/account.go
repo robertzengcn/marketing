@@ -4,8 +4,8 @@ import (
 	// beego "github.com/beego/beego/v2/server/web"
 	"marketing/models"
 	"github.com/beego/i18n"
-	"github.com/beego/beego/v2/core/logs"
-	"strconv"
+	 "github.com/beego/beego/v2/core/logs"
+	// "strconv"
 )
 type AccountTokenResponse struct{
 	// Id int64
@@ -33,6 +33,8 @@ type AccountController struct {
 func (c *AccountController) Validaccount() {
 	username := c.GetString("username")
 	pass:=c.GetString("password")
+	logs.Info(username)
+	logs.Info(pass)
 	if len(username) == 0 || len(pass) == 0{
 		//用户名和邮箱为空
 		c.ErrorJson(20211122163020,c.Tr("email_pass_empty"),nil)
@@ -72,7 +74,7 @@ func (c *AccountController) Validaccount() {
 func (c *AccountController)Accountinfo(){
 	uid := c.GetSession("uid")
 	uidint64:=uid.(int64)
-	logs.Info("uid will be"+strconv.FormatInt(uidint64,10))
+	// logs.Info("uid will be"+strconv.FormatInt(uidint64,10))
 	if uid == nil {
 		c.ErrorJson(202302270948,c.Tr("user_not_login"),nil)
 	}

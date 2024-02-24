@@ -6,12 +6,13 @@ import (
 	// "github.com/beego/beego/v2/core/logs"
 	// "marketing/utils"
 	"marketing/utils"
-
+	"marketing/dto"
 	// "github.com/beego/beego/v2/core/logs"
 	"github.com/beego/beego/v2/core/logs"
 	"github.com/beego/i18n"
 	// "fmt"
 	//"errors"
+	// "strconv"
 )
 
 type CampaignController struct {
@@ -97,7 +98,9 @@ func (c *CampaignController) CreateCampaign() {
 
 //list campaign use request
 func (c *CampaignController) ListCampaign() {
+	
 	start, _ := c.GetInt("page", 0)
+	// logs.Info("start is "+strconv.Itoa(start))
 	num, _ := c.GetInt("size", 10)
 	uid := c.GetSession("uid")
 	accountId:=uid.(int64)
@@ -110,11 +113,26 @@ func (c *CampaignController) ListCampaign() {
 	if(camNumerr!=nil){
 		c.ErrorJson(20211208153942, camNumerr.Error(), nil)
 	}
-	CampaignlistResponse := CampaignlistResponse{
-		Data: campagins,
-		Num:  campaginNum,
+	camaigndto:=dto.CampaignDto{
+		Num: campaginNum,
 	}
-	c.SuccessJson(CampaignlistResponse)
+	for _, element := range campagins {
+		// logs.Info(element)
+		camaigndto.Records=append(camaigndto.Records,dto.CampaignItemDto{
+			CampaignId:element.CampaignId,
+			CampaignName:element.CampaignName,
+			CampaignDescription:element.CampaignDescription,
+			Disable:element.Disable,
+			Types:element.Types.CampaignTypeName,
+			// Tags:element.Tags,
+			AccountId: element.AccountId.Id,
+		})
+	}
+	// CampaignlistResponse := CampaignlistResponse{
+	// 	Data: campagins,
+	// 	Num:  campaginNum,
+	// }
+	c.SuccessJson(camaigndto)
 }
 
 //get socail account relation with campaign use campaign Id

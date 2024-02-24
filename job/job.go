@@ -20,7 +20,7 @@ func InitTask() {
 			return schErr
 		}
 		for _, v := range schVar {
-			staId, staerr := scheduleModel.Createtask(v.Id)
+			staId, staerr := scheduleModel.Createtask(v.Id,1)
 			if staerr != nil {
 				logs.Error(staerr)
 				return staerr
@@ -47,7 +47,7 @@ func InitTask() {
 			logs.Error(schErr)
 			return schErr
 		}
-		staId, staerr := scheduleModel.Createtask(schVar.Id)
+		staId, staerr := scheduleModel.Createtask(schVar.Id,1)
 		if staerr != nil {
 			logs.Error(staerr)
 			return staerr
