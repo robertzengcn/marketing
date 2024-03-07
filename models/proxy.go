@@ -189,3 +189,13 @@ func (u *Proxy)DisableProxydb(host string, port string)(int64,error){
 		"available": 0,
 	})
 }
+//get proxy by id
+func (u *Proxy)GetProxyById(id int64)(*Proxy,error){
+	o := orm.NewOrm()
+	var proxy Proxy
+	err := o.QueryTable(new(Proxy)).Filter("id", id).One(&proxy)
+	if err != nil {
+		return nil, err
+	}
+	return &proxy, nil
+}

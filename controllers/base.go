@@ -106,6 +106,7 @@ func Filter_user(ctx *context.Context) {
 				if(accerr==nil&&acctoken!=nil){
 					// logs.Info("uid is"+fmt.Sprintf("%d", acctoken.Account.Id))
 					ctx.Output.Session("uid", acctoken.Account.Id)
+					ctx.Output.Session("tokenId", acctoken.TokenId)
 					return
 				}
 			}

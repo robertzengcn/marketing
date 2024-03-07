@@ -25,6 +25,9 @@ func Init() {
 type NumberStr interface {
     int64 | float64| string
 }
+type Ints interface{
+	int64 | int|int8|int16|int32
+}
 
 //valid email valid
 func ValidEmail(email string) bool {
@@ -183,5 +186,13 @@ func Writetofile(filename string, data string) error {
 		return err
 	}
 	return nil
+}
+//convert int 1 or 0 to bool
+func IntToBool[V Ints](i V) bool {
+	// if i == 1 {
+	// 	return true
+	// }
+	// return false
+	return i==1;
 }
 

@@ -133,6 +133,12 @@ func (u *AccountToken) CheckAccounttoken(token string) (*AccountToken,error){
 		return &accounttoken,nil
 	}
 }
+func (u *AccountToken) DeleteAccountToken(tokenId int64) (int64,error){
+	o := orm.NewOrm()
+	// accToken := new(AccountToken)
+	num, err := o.Delete(&AccountToken{TokenId: tokenId})
+	return num,err
+}
 
 
 
