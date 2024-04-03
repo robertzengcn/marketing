@@ -22,6 +22,7 @@ type Proxy struct {
 	Checktime   time.Time `orm:"null;type(datetime)"`
 	Source 		string    `orm:"size(20)"`
 	Usetime	 time.Time `orm:"null;type(datetime)"`
+	Account   *Account     `orm:"rel(fk);on_delete(do_nothing);column(account_id)"`	
 	//Googleenable int  	 `orm:"size(1);default(0);description(whether the proxy is enable on google)"`
 }
 
@@ -44,12 +45,13 @@ func (u *Proxy) Getproxytype() (Proxyway) {
 	return &webproxy
 }
 
-//save proxy to database
+//save new proxy to database
 func (u *Proxy) Save(proxy Proxy) (int64, error) {
 	o := orm.NewOrm()
 	qs := o.QueryTable(u)
+	
 	var proxyitem Proxy
-	err := qs.Filter("host", proxy.Host).Filter("port", proxy.Port).Filter("user", proxy.User).Filter("pass", proxy.Pass).Filter("protocol", proxy.Protocol).One(&proxyitem)
+	err := qs.Filter("host", proxy.Host).Filter("port", proxy.Port).Filter("user", proxy.User).Filter("pass", proxy.Pass).Filter("protocol", proxy.Protocol).Filter("account_id", proxy.Account).One(&proxyitem)
 	// logs.Error(err)
 	if err == orm.ErrNoRows {
 		id, err := o.Insert(&proxy)
@@ -86,7 +88,7 @@ func (u *Proxy) Handleproxy() ( error) {
 			u.DisableProxydb(proxy.Host,proxy.Port)
 			continue;
 		}
-
+		proxy.Account = &Account{Id: 1}
 		_, err := u.Save(proxy)
 		if err != nil {
 			logs.Error(err)
@@ -198,4 +200,56 @@ func (u *Proxy)GetProxyById(id int64)(*Proxy,error){
 		return nil, err
 	}
 	return &proxy, nil
+}
+func (u *Proxy)Getproxybyaccount(accountId int64,offset int,size int,search string)([]Proxy,error){
+	o := orm.NewOrm()
+	var proxylist []Proxy
+	cond := orm.NewCondition()
+	qs:= o.QueryTable(u)
+	cond1 := cond.And("account_id", accountId)
+	qs = qs.SetCond(cond1)
+	if(len(search)>0){
+		logs.Info(search)
+		cond2 :=cond.AndCond(cond.And("host__contains",search).Or("user__contains",search))
+		qs =qs.SetCond(cond2)
+	}
+	_,err:=qs.OrderBy("-id").Limit(size,offset).All(&proxylist)
+	return proxylist,err
+}
+//get proxy count
+func (u *Proxy)GetProxyCountbyaccount(accountId int64,search string)(int64,error){
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+	cond := orm.NewCondition()
+	cond1 := cond.And("account_id", accountId)
+	qs = qs.SetCond(cond1)
+	if(len(search)>0){
+		cond2 :=cond.AndCond(cond.And("host__contains",search).Or("user__contains",search))
+		qs =qs.SetCond(cond2)
+	}
+	return qs.Count()
+}
+//delete proxy
+func (u *Proxy)DeleteProxy(id int64,accoutId int64)(error){
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+	_, err := qs.Filter("id", id).Filter("account_id",accoutId).Delete()	
+	return err	
+}
+//get proxy detail
+func (u *Proxy)GetProxyDetail(id int64,accoutId int64)(*Proxy,error){
+	//get proxy detail from db
+	o := orm.NewOrm()
+	var proxy Proxy
+	err := o.QueryTable(new(Proxy)).Filter("id", id).Filter("account_id",accoutId).One(&proxy)
+	if err != nil {
+		return nil, err
+	}
+	return &proxy, nil
+}
+//update proxy by id
+func (u *Proxy)UpdateProxy(proxy Proxy)(error){
+	o := orm.NewOrm()
+	_, err := o.Update(&proxy)
+	return err
 }

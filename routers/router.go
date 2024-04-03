@@ -102,7 +102,16 @@ func init() {
 		beego.NSRouter("/socialaccount", &controllers.SocialAccountController{}, "post:Savesocialaccount"),
 		beego.NSRouter("/socialaccount", &controllers.SocialAccountController{}, "get:GetSocialAccount"),
 		beego.NSRouter("/socialaccount/list", &controllers.SocialAccountController{}, "get:Listsocialaccount"),
-		beego.NSRouter("/socialaccount/update", &controllers.SocialAccountController{}, "post:Updatesocialaccount"),
+		// beego.NSRouter("/socialaccount/update", &controllers.SocialAccountController{}, "post:Updatesocialaccount"),
+		beego.NSRouter("/socialplatform/list", &controllers.SocialPlatfromController{}, "get:Listplatform"),
+		beego.NSRouter("/socialaccount", &controllers.SocialAccountController{}, "delete:DeleleSocialaccount"),
+		beego.NSRouter("/proxy/list", &controllers.ProxyController{}, "get:GetProxyList"),
+		beego.NSRouter("/proxy/delete", &controllers.ProxyController{}, "delete:DeleteProxy"),
+		beego.NSRouter("/proxy", &controllers.ProxyController{}, "get:GetProxyDetail"),
+		beego.NSRouter("/proxy/save", &controllers.ProxyController{}, "post:SaveProxy"),
+		beego.NSRouter("/protol", &controllers.ProxyController{}, "get:GetProtollist"),
+		beego.NSRouter("/proxy/import", &controllers.ProxyController{}, "post:ImportProxyList"),
+		
 	)
 	beego.AddNamespace(api)
 
