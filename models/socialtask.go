@@ -64,7 +64,7 @@ func (u *SocialTask) GetSocialTaskList(campaignId int64, page int64, size int64,
 	if len(search) > 0 {
 		querySet = querySet.Filter("task_name__icontains", search)
 	}
-	_, err := querySet.Limit(size, page).All(&socialTask, "id", "task_name", "type", "campaign_id")
+	_, err := querySet.Limit(size, page).All(&socialTask, "id", "task_name", "type", "campaign_id","disable")
 
 	// get the search number
 	num, numerr := u.GetSocialTaskNum(campaignId, search)

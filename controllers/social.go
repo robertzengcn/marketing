@@ -41,6 +41,7 @@ type SocialTaskEntity struct {
 	Type string `json:"type"`
 	// Keywords     []string `json:"keywords"`
 	ExtraTaskIfo models.TaskExtaInfo `json:"extra_task_info"`
+	Disable 	int                 `json:"disable"`
 }
 
 type SocialTaskResponse struct {
@@ -135,7 +136,7 @@ func (c *SocialController) Getsocialtasklist() {
 		//find social task type
 		socialtasktypeModel := models.SocialTaskType{}
 		socialtasktype, _ := socialtasktypeModel.FindSocialTaskTypeById(stv.Type.TypeId)
-
+		soentity.Disable = stv.Disable
 		// soentity.Tags = stv.Campaign.Tags
 		soentity.Type = socialtasktype.TypeName
 		// tags := strings.Split(stv.Campaign.Tags, ",")

@@ -22,7 +22,7 @@ type SocialAccount struct {
 	Socialplatform *SocialPlatform `orm:"rel(fk);on_delete(do_nothing);column(socialplatform_id)" json:"socialplatform_id"`
 	Status           int8            `orm:"default(1)"` // 1:active 2:inactive
 	// UseProxy         int8            `orm:"default(1)"` // whether to use proxy
-	Proxy            *SocialProxy    `orm:"rel(fk);on_delete(do_nothing);column(proxy_id)" json:"proxy_id"`
+	// Proxy            *SocialProxy    `orm:"rel(fk);on_delete(do_nothing);column(proxy_id)" json:"proxy_id"`
 	Createtime       time.Time       `orm:"auto_now;type(datetime)"`
 	Deletetime 		time.Time       `orm:"type(datetime);column(deletetime);null"` //set delete tag for data
 }
@@ -58,16 +58,16 @@ func init() {
 func (u *SocialAccount) CreateSocialAccount(soa SocialAccountUpdate) (int64, error) {
 
 	//find social proxy by proxy id
-	sopModel := SocialProxy{}
-	var sop SocialProxy
+	// sopModel := SocialProxy{}
+	// var sop SocialProxy
 	var err error
-	if soa.Proxy.Id != 0 {
-		sop, err = sopModel.GetSocialProxyById(soa.Proxy.Id)
-		// logs.Error(proxyId)
-		if err != nil {
-			return 0, errors.New("proxy not found")
-		}
-	}
+	// if soa.Proxy.Id != 0 {
+	// 	sop, err = sopModel.GetSocialProxyById(soa.Proxy.Id)
+	// 	// logs.Error(proxyId)
+	// 	if err != nil {
+	// 		return 0, errors.New("proxy not found")
+	// 	}
+	// }
 	o := orm.NewOrm()
 	socialAccount := SocialAccount{
 		// CampaignId: &Campaign{CampaignId: campaignId},
@@ -75,7 +75,7 @@ func (u *SocialAccount) CreateSocialAccount(soa SocialAccountUpdate) (int64, err
 		UserName:         soa.UserName,
 		PassWord:         soa.PassWord,
 		Socialplatform: &SocialPlatform{Id: soa.Socialplatform.Id},
-		Proxy:            &sop,
+		// Proxy:            &sop,
 		Status:           1,
 	}
 	//log.Info(socialAccount)
@@ -98,7 +98,7 @@ func (u *SocialAccount) GetSocialAccount(id int64,ownerId int64) (*SocialAccount
 	o := orm.NewOrm()
 	var socialAccount SocialAccount
 
-	err := o.QueryTable(new(SocialAccount)).Filter("id", id).Filter("account_id", ownerId).Filter("deletetime__isnull", true).One(&socialAccount, "id", "user_name", "pass_word", "socialplatform_id", "status","proxy_id")
+	err := o.QueryTable(new(SocialAccount)).Filter("id", id).Filter("account_id", ownerId).Filter("deletetime__isnull", true).One(&socialAccount, "id", "user_name", "pass_word", "socialplatform_id", "status")
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func (u *SocialAccount) UpdateSocialAccount(id int64,ownerId int64,updateEntity 
 		UserName:         updateEntity.UserName,
 		PassWord:         updateEntity.PassWord,
 		Socialplatform: &SocialPlatform{Id: updateEntity.Socialplatform.Id},
-		Proxy:            &SocialProxy{Id: updateEntity.Proxy.Id},
+		// Proxy:            &SocialProxy{Id: updateEntity.Proxy.Id},
 		Status : updateEntity.Status,
 	}
 	_, err := o.Update(&socialAccount)

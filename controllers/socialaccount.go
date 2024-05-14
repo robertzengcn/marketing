@@ -7,6 +7,7 @@ import (
 	"marketing/models"
 	"marketing/utils"
 	"strings"
+	"strconv"
 )
 
 type SocialAccountController struct {
@@ -30,16 +31,18 @@ func (c *SocialAccountController) Savesocialaccount() {
 	name := c.GetString("name")
 	phone := c.GetString("phone")
 	email := c.GetString("email")
-	proxyId, _ := c.GetInt64("proxy_id")
+
+	// proxyId, _ := c.GetInt64("proxy_id")
+
 	status, _ := c.GetInt8("status", 1)
-	if proxyId > 0 {
-		//check proxy id valid
-		proxyModel := models.Proxy{}
-		proxy, _ := proxyModel.GetProxyById(proxyId)
-		if proxy.Id <= 0 {
-			c.ErrorJson(20240305105533, "proxy id incorrect", nil)
-		}
-	}
+	// if proxyId > 0 {
+	// 	//check proxy id valid
+	// 	proxyModel := models.Proxy{}
+	// 	proxy, _ := proxyModel.GetProxyById(proxyId)
+	// 	if proxy.Id <= 0 {
+	// 		c.ErrorJson(20240305105533, "proxy id incorrect", nil)
+	// 	}
+	// }
 
 	if social_type_id <= 0 {
 		c.ErrorJson(202304041002135, "social type incorrect", nil)
@@ -54,6 +57,23 @@ func (c *SocialAccountController) Savesocialaccount() {
 		//check email vaild
 		if !utils.ValidEmail(email) {
 			c.ErrorJson(202304041115158, "email incorrect", nil)
+		}
+	}
+	//config proxy
+	var proxys []int64
+	//update account proxy
+	inputValues, _ := c.Input()
+	for k, v := range inputValues {
+		if k == "proxy[]" {
+			if len(v) > 0 {
+				// Convert v from []string to []int64
+				proxyIDs := make([]int64, len(v))
+				for i, val := range v {
+					proxyID, _ := strconv.ParseInt(val, 10, 64)
+					proxyIDs[i] = proxyID
+				}
+				proxys = append(proxys, proxyIDs...)
+			}
 		}
 	}
 
@@ -71,7 +91,7 @@ func (c *SocialAccountController) Savesocialaccount() {
 		PassWord:       pass,
 		Socialplatform: &models.SocialPlatform{Id: socialplatform.Id},
 		Status:         status,
-		Proxy:          &models.SocialProxy{Id: proxyId},
+		// Proxy:          &models.SocialProxy{Id: proxyId},
 		AccountName:    name,
 		Phone:          phone,
 		Email:          email,
@@ -90,6 +110,8 @@ func (c *SocialAccountController) Savesocialaccount() {
 		}
 		finId = saId
 	}
+	socialAccountlistModel:=models.SocialAccountProxyList{}
+	socialAccountlistModel.UpdateProxysToSocialAccount(finId,proxys)
 	sap := dto.SocialAccountSaveresp{Id: finId}
 	c.SuccessJson(sap)
 }
@@ -108,25 +130,32 @@ func (c *SocialAccountController) GetSocialAccount() {
 
 		c.ErrorJson(202304050957100, err.Error(), nil)
 	}
-	//get social proxy
-	sopmodel := models.SocialProxy{}
-	logs.Info(socialaccounts)
-	socialproxy, err := sopmodel.GetSocialProxyById(socialaccounts.Proxy.Id)
+	//get social proxy list
+	// sopmodel := models.SocialProxy{}
+	// logs.Info(socialaccounts)
+	// socialproxy, err := sopmodel.GetSocialProxyById(socialaccounts.Proxy.Id)
+	soaproxylist := models.SocialAccountProxyList{}
+	socialproxy, err := soaproxylist.GetProxyBySocialAccountId(socialaccounts.Id)
 
 	if err != nil && (err.Error() != "<QuerySeter> no row found") {
 		c.ErrorJson(20230403094479, err.Error(), nil)
 	}
-	// var sop SoProxy
-	// if socialproxy != (models.SocialProxy{}) {
-	sop := dto.SocialProxyDto{
-		Url:      socialproxy.Url,
-		Username: socialproxy.Username,
-		Password: socialproxy.Password,
+	
+	var sopArr []dto.SocialProxyDto
+		for _, v := range socialproxy {
+		sop := dto.SocialProxyDto{
+			Id:       v.Id,
+			Protocol: v.Protocol,
+			Host:    v.Host,
+			Port:    v.Port,
+			// Url:      v.Protocol+"://"+v.Host + ":" + v.Port,
+			Username: v.User,
+			Password: v.Pass,
+		}
+		sopArr = append(sopArr, sop)
 	}
 
-	// }
-	// logs.Info(socialaccounts.Socialplatform.Id)
-	//get social platform name
+
 	socialplatform := models.SocialPlatform{}
 	socialplatform, err = socialplatform.GetSocialPlatformById(socialaccounts.Socialplatform.Id)
 	if err != nil {
@@ -140,17 +169,17 @@ func (c *SocialAccountController) GetSocialAccount() {
 	}
 	logs.Info(profile)
 	socirep := dto.SocialAccountDetail{
-		Id:           socialaccounts.Id,
-		SocialType:   socialplatform.Name,
-		SocialTypeId: socialplatform.Id,
+		Id:            socialaccounts.Id,
+		SocialType:    socialplatform.Name,
+		SocialTypeId:  socialplatform.Id,
 		SocialTypeUrl: socialplatform.Url,
-		User:         socialaccounts.UserName,
-		Pass:         socialaccounts.PassWord,
-		Status:       socialaccounts.Status,
-		Name:         profile.Name,
-		PhoneNumber:  profile.PhoneNumber,
-		Email:        profile.Email,
-		Proxy:        sop,
+		User:          socialaccounts.UserName,
+		Pass:          socialaccounts.PassWord,
+		Status:        socialaccounts.Status,
+		Name:          profile.Name,
+		PhoneNumber:   profile.PhoneNumber,
+		Email:         profile.Email,
+		Proxy:         sopArr,
 	}
 	c.SuccessJson(socirep)
 }
@@ -184,7 +213,15 @@ func (c *SocialAccountController) Listsocialaccount() {
 		c.ErrorJson(202403060939156, err.Error(), nil)
 	}
 	var socialaccDto []dto.SocialAccountDto
+	soaproxylist := models.SocialAccountProxyList{}
 	for _, v := range socialaccounts {
+		//get proxy by social account id
+		// sopmodel := models.SocialProxy{}
+		var useProxy int8 = 0
+		socialproxy, _ := soaproxylist.GetProxyBySocialAccountId(v.Id)
+		if len(socialproxy) > 0 {
+			useProxy = 1
+		}
 		socialaccDto = append(socialaccDto, dto.SocialAccountDto{
 			Id:           v.Id,
 			SocialType:   v.Socialplatform.Name,
@@ -192,6 +229,7 @@ func (c *SocialAccountController) Listsocialaccount() {
 			User:         v.UserName,
 			Password:     v.PassWord,
 			Status:       v.Status,
+			UseProxy:    useProxy,
 		})
 		// logs.Info(i,v)
 	}
@@ -201,19 +239,18 @@ func (c *SocialAccountController) Listsocialaccount() {
 	}
 	c.SuccessJson(salresp)
 }
+
 //delete social account
-func (c *SocialAccountController) DeleleSocialaccount(){
+func (c *SocialAccountController) DeleleSocialaccount() {
 	uid := c.GetSession("uid")
 	accountId := uid.(int64)
 	id, _ := c.GetInt64("id", 0)
 	if id <= 0 {
 		c.ErrorJson(202403101644189, "id incorrect", nil)
 	}
-	err := models.DefaultSocialAccount.DeleteSocialAccount(id,accountId)
+	err := models.DefaultSocialAccount.DeleteSocialAccount(id, accountId)
 	if err != nil {
 		c.ErrorJson(202403080943186, err.Error(), nil)
 	}
 	c.SuccessJson(nil)
 }
-
-

@@ -1,5 +1,7 @@
 package dto
-
+// import(
+// 	"time"
+// )
 type ProxyDto struct {
 	Id int64 `json:"id"`
 	Host        string    `json:"host"`
@@ -8,6 +10,7 @@ type ProxyDto struct {
 	Pass        string    `json:"pass"`
 	Protocol    string    `json:"protocol"`
 	CountryCode string    `json:"country_code"`
+	Addtime     string    `json:"addtime"`
 }
 
 type ProxyRespDto struct {
