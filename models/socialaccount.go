@@ -120,6 +120,8 @@ func (u *SocialAccount) ListSocialaccount(ownerId int64,page int,size int,keywor
 	
 	if(len(orderby)>0){
 		qs=qs.OrderBy(orderby)
+	}else{
+		qs=qs.OrderBy("-id")
 	}
 	
 	// logs.Info(size)

@@ -27,7 +27,7 @@ func (c *SocialAccountController) Savesocialaccount() {
 	social_type_id, _ := c.GetInt64("social_type_id")
 	id, _ := c.GetInt64("id", 0) //social account id
 	user := c.GetString("user")
-	pass := c.GetString("pass")
+	pass := c.GetString("pass", "")
 	name := c.GetString("name")
 	phone := c.GetString("phone")
 	email := c.GetString("email")
@@ -50,9 +50,9 @@ func (c *SocialAccountController) Savesocialaccount() {
 	if len(user) <= 0 {
 		c.ErrorJson(202304041005138, "user incorrect", nil)
 	}
-	if len(pass) <= 0 {
-		c.ErrorJson(202304041005141, "pass incorrect", nil)
-	}
+	// if len(pass) <= 0 {
+	// 	c.ErrorJson(202304041005141, "pass incorrect", nil)
+	// }
 	if len(email) > 0 {
 		//check email vaild
 		if !utils.ValidEmail(email) {
