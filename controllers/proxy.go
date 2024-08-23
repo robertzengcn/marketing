@@ -18,6 +18,7 @@ type ProxyController struct {
 	i18n.Locale
 }
 
+
 func (c *ProxyController) ChildPrepare() {
 
 }
@@ -183,5 +184,20 @@ func (c *ProxyController) ImportProxyList() {
 		
 		c.ErrorJson(202403291414163, err.Error(), nil)
 	}
+
+}
+//count proxy by account id
+func (c *ProxyController) CountProxyByAccount() {
+	uid := c.GetSession("uid")
+	accountId := uid.(int64)
+	var proxy models.Proxy
+	total, err := proxy.GetProxyCountbyaccount(accountId, "")
+	if(err!=nil){
+		c.ErrorJson(202408211352195, err.Error(), nil)
+	}
+	proxyCount:=dto.ProxyCountDto{
+		Total: total,
+	}
+	c.SuccessJson(proxyCount)
 
 }

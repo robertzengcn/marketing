@@ -111,6 +111,7 @@ func init() {
 		beego.NSRouter("/proxy/save", &controllers.ProxyController{}, "post:SaveProxy"),
 		beego.NSRouter("/protol", &controllers.ProxyController{}, "get:GetProtollist"),
 		beego.NSRouter("/proxy/import", &controllers.ProxyController{}, "post:ImportProxyList"),
+		beego.NSRouter("/proxy/count", &controllers.ProxyController{}, "get:CountProxyByAccount"),
 		
 	)
 	beego.AddNamespace(api)

@@ -38,3 +38,6 @@ type ImportProxyDto struct {
 	Pass        string    `json:"pass"`
 	Protocol    string    `json:"protocol"`
 }
+type ProxyCountDto struct {
+Total int64 `json:"total"`
+}
