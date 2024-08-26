@@ -74,6 +74,9 @@ const WEBSHAREURL string = "https://proxy.webshare.io"
 //get proxy list
 func (u *ProxyWebshare) Proxylist() ([]Proxy, error) {
 	websharetoken := beego.AppConfig.DefaultString("webshare::token", "")
+	if(len(websharetoken)<1){
+		return nil, errors.New("webshare token is empty")
+	}
 	//logs.Info(websharetoken)
 	//send http get request
 	client := http.Client{}
