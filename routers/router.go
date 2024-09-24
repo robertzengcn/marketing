@@ -112,7 +112,10 @@ func init() {
 		beego.NSRouter("/protol", &controllers.ProxyController{}, "get:GetProtollist"),
 		beego.NSRouter("/proxy/import", &controllers.ProxyController{}, "post:ImportProxyList"),
 		beego.NSRouter("/proxy/count", &controllers.ProxyController{}, "get:CountProxyByAccount"),
-		
+		//email template route
+		beego.NSRouter("/emailtpl/create", &controllers.EmailtplController{}, "post:CreateEmailtpl"),
+		beego.NSRouter("/emailtpl/list", &controllers.EmailtplController{}, "get:GetEmailtplList"),
+		beego.NSRouter("/emailtpl/:id:int", &controllers.EmailtplController{}, "get:GetEmailtplById"),
 	)
 	beego.AddNamespace(api)
 

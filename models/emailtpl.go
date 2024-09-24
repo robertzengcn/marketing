@@ -19,6 +19,7 @@ type EmailTpl struct {
 	TplRecord time.Time `orm:"auto_now;type(datetime)"`
 	UpdateTime time.Time `orm:"auto_now;type(datetime)"`
 	Status int `orm:"size(1);default(1);description(this mean status of the email tpl)"`
+	AccountId   *Account   `orm:"rel(fk);on_delete(do_nothing);column(account_id)" valid:"Required"` 
 }
 func (u *EmailTpl) TableName() string {
 	return "email_tpl"
@@ -94,6 +95,57 @@ func (u *EmailTpl)Replacevar(et *EmailTpl, femail *FetchEmail)(*EmailTpl,error){
 	et.TplContent=strings.Replace(et.TplContent,"{$description}",femail.Description,-1)
 	return et,nil
 }
+///get email template by id and account id
+func (u *EmailTpl)GetEmailTplByIdAndAccountId(tplId int64,accountId int64)(*EmailTpl,error){
+	o := orm.NewOrm()
+	emailtpl := EmailTpl{TplId: tplId,AccountId:&Account{Id:accountId}}
+	err := o.Read(&emailtpl,"TplId","AccountId")
+	if(err!=nil){
+		return nil, err	
+	}else{
+		return &emailtpl,nil
+	}
+}
+///get email template list by account id
+func (u *EmailTpl)GetEmailTplListByAccountId(accountId int64, page int64, size int64)([]*EmailTpl,error){
+	var emps []*EmailTpl
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+	qs.Filter("account_id", accountId).Limit(size, page).All(&emps)
+	return emps,nil
+}
+///update email template by id
+func (u *EmailTpl)UpdateEmailTplById(emailtpl EmailTpl)(int64,error){
+	//find item by id
+	et,err:=u.GetOne(emailtpl.TplId)
+	if(err!=nil){
+		return 0,err
+	}
+	//update email item
+	et.TplTitle=emailtpl.TplTitle
+	et.TplContent=emailtpl.TplContent
+	et.CampaignId=emailtpl.CampaignId
+	et.Status=emailtpl.Status
+	o := orm.NewOrm()
+	num, err := o.Update(et)
+	if(err!=nil){
+		return 0,err
+	}
+return num,nil
+}
+
+
+///update email template by id and account id
+func (u *EmailTpl)UpdateEmailTplByIdAndAccountId(emailtpl EmailTpl)(int64,error){
+	//find item by id and account id
+	et,err:=u.GetEmailTplByIdAndAccountId(emailtpl.TplId,emailtpl.AccountId.Id)
+	if(err!=nil){
+		return 0,err
+	}
+	//update email item
+	return u.UpdateEmailTplById(*et)
+}
+
 
 
 
