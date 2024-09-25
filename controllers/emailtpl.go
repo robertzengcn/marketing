@@ -7,6 +7,8 @@ import (
 	"github.com/beego/beego/v2/core/validation"
 	"github.com/beego/i18n"
 	"marketing/dto"
+	"strings"
+	"marketing/utils"
 )
 
 type EmailtplController struct {
@@ -25,10 +27,10 @@ func (c *EmailtplController) CreateEmailtpl() {
 	c.Lang = c.BaseController.Lang
 	email_title := c.GetString("email_title")
 	email_content := c.GetString("email_content")
-	campaign_id, cerr := c.GetInt64("campaign_id")
-	if cerr != nil {
-		c.ErrorJson(20220618162124, cerr.Error(), nil)
-	}
+	campaign_id, _ := c.GetInt64("campaign_id")
+	// if cerr != nil {
+	// 	c.ErrorJson(20240925103730, cerr.Error(), nil)
+	// }
 	campaiginVar := &models.Campaign{}
 	if campaign_id > 0 {
 		CampaignModel := models.Campaign{}
@@ -82,10 +84,21 @@ func (c *EmailtplController) GetEmailtplList() {
 	if serr != nil {
 		c.ErrorJson(20240924112463, serr.Error(), nil)
 	}
+	search:=c.GetString("search","")
+
+	orderby := c.GetString("orderby","")
+	neworderby := strings.ReplaceAll(orderby, "-", "")
+	if len(neworderby) > 0 {
+
+		orderbyvaild := utils.Contains([]string{"tpl_id", "tpl_record"}, neworderby)
+		if !orderbyvaild {
+			c.ErrorJson(202403101644189, "orderby incorrect", nil)
+		}
+	}
 	uid := c.GetSession("uid")
 	accountId := uid.(int64)
 	emailtplModel := models.EmailTpl{}
-	emailtplList, emailerr := emailtplModel.GetEmailTplListByAccountId(accountId, page, size)
+	emailtplList, emailerr := emailtplModel.GetEmailTplListByAccountId(accountId, page, size,search,neworderby)
 	if emailerr != nil {
 		c.ErrorJson(20220617155924, emailerr.Error(), nil)
 	}
@@ -132,7 +145,7 @@ func (c *EmailtplController) GetEmailtplById() {
 func (c *EmailtplController) UpdateEmailtpl() {
 	uid := c.GetSession("uid")
 	accountId := uid.(int64)
-	tplId, terr := c.GetInt64("id")
+	tplId, terr := c.GetInt64(":id")
 	if terr != nil {
 		c.ErrorJson(20220618162124, terr.Error(), nil)
 	}
@@ -175,6 +188,7 @@ func (c *EmailtplController) UpdateEmailtpl() {
 		TplContent: email_content,
 		CampaignId: campaiginVar,
 		Status:     status,
+		AccountId: &models.Account{Id: accountId},
 	}
 	valid := validation.Validation{}
 	b, verr := valid.Valid(&emailVar)
@@ -194,4 +208,26 @@ func (c *EmailtplController) UpdateEmailtpl() {
 	}
 	c.SuccessJson(res)
 
+}
+///delete email template by id and account id
+func (c *EmailtplController) DeleteEmailtpl() {
+	uid := c.GetSession("uid")
+	accountId := uid.(int64)
+	tplId, terr := c.GetInt64(":id")
+	if terr != nil {
+		c.ErrorJson(20220618162124, terr.Error(), nil)
+	}
+	emailtplModel := models.EmailTpl{}
+	eres, ereserr := emailtplModel.GetEmailTplByIdAndAccountId(tplId, accountId)
+	if ereserr != nil {
+		c.ErrorJson(202409241410128, ereserr.Error(), nil)
+	}
+	if eres == nil {
+		c.ErrorJson(202409241410131, "email template not exist", nil)
+	}
+	res, err := emailtplModel.DeleteEmailTplByIdAndAccountId(tplId,accountId)
+	if err != nil {
+		c.ErrorJson(202409241405104, err.Error(), nil)
+	}
+	c.SuccessJson(res)
 }

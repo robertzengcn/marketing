@@ -107,11 +107,30 @@ func (u *EmailTpl)GetEmailTplByIdAndAccountId(tplId int64,accountId int64)(*Emai
 	}
 }
 ///get email template list by account id
-func (u *EmailTpl)GetEmailTplListByAccountId(accountId int64, page int64, size int64)([]*EmailTpl,error){
+func (u *EmailTpl)GetEmailTplListByAccountId(accountId int64, page int64, size int64, search string,orderby string)([]*EmailTpl,error){
+	
 	var emps []*EmailTpl
 	o := orm.NewOrm()
 	qs := o.QueryTable(u)
-	qs.Filter("account_id", accountId).Limit(size, page).All(&emps)
+	// qs.Filter("account_id", accountId)
+	cond := orm.NewCondition()
+	// qs.Filter("account_id", accountId)
+	cond = cond.And("account_id", accountId)
+	//qs = qs.SetCond(cond1)
+	if(len(search)>0){
+		searchCond := orm.NewCondition()
+		searchCond = searchCond.Or("tpl_title__contains", search).Or("tpl_content__contains", search)
+		//cond =cond.AndCond(cond.Or("tpl_title__contains",search).Or("tpl_content__contains",search))
+		cond = cond.AndCond(searchCond)
+	}
+	qs=qs.SetCond(cond)
+	if(len(orderby)>0){
+		qs=qs.OrderBy(orderby)
+	}else{
+		qs=qs.OrderBy("-tpl_id")
+	}
+	qs.Limit(size, page).All(&emps)
+	
 	return emps,nil
 }
 ///update email template by id
@@ -144,6 +163,15 @@ func (u *EmailTpl)UpdateEmailTplByIdAndAccountId(emailtpl EmailTpl)(int64,error)
 	}
 	//update email item
 	return u.UpdateEmailTplById(*et)
+}
+///delete email template by id and account id
+func (u *EmailTpl)DeleteEmailTplByIdAndAccountId(tplId int64,accountId int64)(int64,error){
+	o := orm.NewOrm()
+	num, err := o.QueryTable(u).Filter("TplId", tplId).Filter("AccountId",accountId).Delete()
+	if(err!=nil){
+		return 0,err
+	}
+	return num,nil
 }
 
 
