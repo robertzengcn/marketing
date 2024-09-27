@@ -133,6 +133,25 @@ func (u *EmailTpl)GetEmailTplListByAccountId(accountId int64, page int64, size i
 	
 	return emps,nil
 }
+///get email list count by account id and search condition
+func (u *EmailTpl)GetEmailTplCountByAccountId(accountId int64,search string)(int64,error){
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+	// qs.Filter("account_id", accountId)
+	cond := orm.NewCondition()
+	// qs.Filter("account_id", accountId)
+	cond = cond.And("account_id", accountId)
+	//qs = qs.SetCond(cond1)
+	if(len(search)>0){
+		searchCond := orm.NewCondition()
+		searchCond = searchCond.Or("tpl_title__contains", search).Or("tpl_content__contains", search)
+		//cond =cond.AndCond(cond.Or("tpl_title__contains",search).Or("tpl_content__contains",search))
+		cond = cond.AndCond(searchCond)
+	}
+	qs=qs.SetCond(cond)
+	return qs.Count()
+}
+
 ///update email template by id
 func (u *EmailTpl)UpdateEmailTplById(emailtpl EmailTpl)(int64,error){
 	//find item by id

@@ -7,4 +7,5 @@ type EmailtplDto struct {
 	//CampaignId int64
 	TplRecord string
 	Status int
+	Index int64
 }

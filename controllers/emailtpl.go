@@ -103,7 +103,7 @@ func (c *EmailtplController) GetEmailtplList() {
 		c.ErrorJson(20220617155924, emailerr.Error(), nil)
 	}
 	var emailtpldtos []dto.EmailtplDto
-	for _, s := range emailtplList {
+	for i, s := range emailtplList {
 		emailtpldtos = append(emailtpldtos, dto.EmailtplDto{
 			TplId:      s.TplId,
 			TplTitle:   s.TplTitle,
@@ -111,9 +111,22 @@ func (c *EmailtplController) GetEmailtplList() {
 			// CampaignId: s.CampaignId.CampaignId,
 			TplRecord:  s.TplRecord.Format("2006-01-02 15:04:05"),
 			Status:     s.Status,
+			Index:int64(page)+int64(i)+1,
 		})
 	}
-	c.SuccessJson(emailtpldtos)
+	ecnum,ecerr:=emailtplModel.GetEmailTplCountByAccountId(accountId,search)
+	if ecerr != nil {
+		c.ErrorJson(202409271129118, ecerr.Error(), nil)
+	}
+
+	// Removed unused variable resp and fixed instantiation issue
+	resp := dto.CommonResponse[[]dto.EmailtplDto]{
+		Record: emailtpldtos,
+		Total:    ecnum,
+	}
+
+	c.SuccessJson(resp)
+	// c.SuccessJson(emailtpldtos)
 }
 
 /// get email template by account id and tpl id
