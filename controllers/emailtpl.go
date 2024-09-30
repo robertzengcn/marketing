@@ -215,11 +215,11 @@ func (c *EmailtplController) UpdateEmailtpl() {
 	if verr != nil {
 		c.ErrorJson(202409241405104, verr.Error(), nil)
 	}
-	res, err := emailtplModel.UpdateEmailTplById(emailVar)
+	_, err := emailtplModel.UpdateEmailTplById(emailVar)
 	if err != nil {
 		c.ErrorJson(202409241405104, err.Error(), nil)
 	}
-	c.SuccessJson(res)
+	c.SuccessJson(tplId)
 
 }
 ///delete email template by id and account id
@@ -242,5 +242,8 @@ func (c *EmailtplController) DeleteEmailtpl() {
 	if err != nil {
 		c.ErrorJson(202409241405104, err.Error(), nil)
 	}
-	c.SuccessJson(res)
+	if(res<=0){
+		c.ErrorJson(202409301448246, "delete fail", nil)
+	}
+	c.SuccessJson(tplId)
 }
