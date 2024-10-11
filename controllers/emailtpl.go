@@ -219,7 +219,7 @@ func (c *EmailtplController) UpdateEmailtpl() {
 	if err != nil {
 		c.ErrorJson(202409241405104, err.Error(), nil)
 	}
-	c.SuccessJson(tplId)
+	c.SuccessJson(CreateEmailres{Id: tplId})
 
 }
 ///delete email template by id and account id
