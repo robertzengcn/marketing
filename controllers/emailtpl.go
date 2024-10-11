@@ -17,7 +17,7 @@ type EmailtplController struct {
 	i18n.Locale
 }
 type CreateEmailres struct {
-	Id int64
+	Id int64 `json:"id"`
 }
 
 /// create email template
@@ -245,5 +245,5 @@ func (c *EmailtplController) DeleteEmailtpl() {
 	if(res<=0){
 		c.ErrorJson(202409301448246, "delete fail", nil)
 	}
-	c.SuccessJson(tplId)
+	c.SuccessJson(CreateEmailres{Id: tplId})
 }
