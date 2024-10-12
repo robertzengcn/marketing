@@ -16,9 +16,9 @@ type EmailtplController struct {
 	BaseController
 	i18n.Locale
 }
-type CreateEmailres struct {
-	Id int64 `json:"id"`
-}
+// type CreateEmailres struct {
+// 	Id int64 `json:"id"`
+// }
 
 /// create email template
 func (c *EmailtplController) CreateEmailtpl() {
@@ -71,7 +71,7 @@ func (c *EmailtplController) CreateEmailtpl() {
 	if emailerr != nil {
 		c.ErrorJson(20220617155924, emailerr.Error(), nil)
 	}
-	c.SuccessJson(CreateEmailres{Id: emailId})
+	c.SuccessJson(dto.IdResponse{Id: emailId})
 }
 
 ///get email list by account id
@@ -219,7 +219,7 @@ func (c *EmailtplController) UpdateEmailtpl() {
 	if err != nil {
 		c.ErrorJson(202409241405104, err.Error(), nil)
 	}
-	c.SuccessJson(CreateEmailres{Id: tplId})
+	c.SuccessJson(dto.IdResponse{Id: tplId})
 
 }
 ///delete email template by id and account id
@@ -245,5 +245,5 @@ func (c *EmailtplController) DeleteEmailtpl() {
 	if(res<=0){
 		c.ErrorJson(202409301448246, "delete fail", nil)
 	}
-	c.SuccessJson(CreateEmailres{Id: tplId})
+	c.SuccessJson(dto.IdResponse{Id: tplId})
 }

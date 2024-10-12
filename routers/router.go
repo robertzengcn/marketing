@@ -118,7 +118,8 @@ func init() {
 		beego.NSRouter("/emailtpl/:id:int", &controllers.EmailtplController{}, "get:GetEmailtplById"),
 		beego.NSRouter("/emailtpl/:id:int", &controllers.EmailtplController{}, "post:UpdateEmailtpl"),
 		beego.NSRouter("/emailtpl/:id:int", &controllers.EmailtplController{}, "delete:DeleteEmailtpl"),
-	
+		//email filter
+		beego.NSRouter("/emailfilter/create", &controllers.EmailFilterController{}, "post:CreateEmailFilter"),
 	)
 	beego.AddNamespace(api)
 
