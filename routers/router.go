@@ -119,7 +119,7 @@ func init() {
 		beego.NSRouter("/emailtpl/:id:int", &controllers.EmailtplController{}, "post:UpdateEmailtpl"),
 		beego.NSRouter("/emailtpl/:id:int", &controllers.EmailtplController{}, "delete:DeleteEmailtpl"),
 		//email filter
-		beego.NSRouter("/emailfilter/create", &controllers.EmailFilterController{}, "post:CreateEmailFilter"),
+		beego.NSRouter("/emailfilter/create", &controllers.EmailFilterController{}, "put:CreateEmailFilter"),
 		beego.NSRouter("/emailfilter/:id:int", &controllers.EmailFilterController{}, "get:GetEmailFilterById"),
 		beego.NSRouter("/emailfilter/:id:int", &controllers.EmailFilterController{}, "post:UpdateEmailFilter"),
 		beego.NSRouter("/emailfilter/:id:int", &controllers.EmailFilterController{}, "delete:DeleteEmailFilter"),
