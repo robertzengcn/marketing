@@ -3,12 +3,13 @@ package controllers
 import (
 	// beego "github.com/beego/beego/v2/server/web"
 	"marketing/models"
-
+	"strings"
 	"encoding/json"
 	"github.com/beego/i18n"
 	// "github.com/beego/beego/v2/core/logs"
 	"github.com/beego/beego/v2/core/logs"
 	"marketing/dto"
+	"marketing/utils"
 )
 
 type EmailFilterController struct {
@@ -56,6 +57,7 @@ func (c *EmailFilterController) CreateEmailFilter() {
 	if err = json.Unmarshal(c.Ctx.Input.RequestBody, &emailFilterdto); err == nil {
 		emailFilter := models.EmailFilter{}
 		emailFilter.Name = emailFilterdto.Name
+		emailFilter.Description=emailFilterdto.Description
 		emailFilter.AccountId = &models.Account{Id: accountId}
 		id, err := emailFilter.CreateEmailFilter(&emailFilter)
 		if err != nil {
@@ -64,7 +66,7 @@ func (c *EmailFilterController) CreateEmailFilter() {
 		for _, v := range emailFilterdto.FilterDetails {
 
 			emailFilterDetail := models.EmailFilterDetail{}
-		
+			
 			emailFilterDetail.FilterId = &models.EmailFilter{Id: id}
 			emailFilterDetail.AccountId = &models.Account{Id: accountId}
 			emailFilterDetail.Content = v.Content
@@ -110,6 +112,7 @@ func (c *EmailFilterController) GetEmailFilterById() {
 	efdto := dto.EmailFilterEntityDto{
 		Id:   FilterEntity.Id,
 		Name: FilterEntity.Name,
+		Description: FilterEntity.Description,
 	}
 	// if(fitarr!=nil){
 	for _, v := range fitarr {
@@ -133,6 +136,7 @@ func (c *EmailFilterController) UpdateEmailFilter() {
 		emailFilter := models.EmailFilter{}
 		emailFilter.Id = id
 		emailFilter.Name = emailFilterdto.Name
+		emailFilter.Description=emailFilterdto.Description
 		emailFilter.AccountId = &models.Account{Id: accountId}
 		err := emailFilter.UpdateEmailFilter(&emailFilter)
 		if err != nil {
@@ -182,4 +186,50 @@ func (c *EmailFilterController) DeleteEmailFilter() {
 		c.ErrorJson(202410141452139, err.Error(), nil)
 	}
 	c.SuccessJson(dto.IdResponse{Id: id})
+}
+//list email filter
+func (c *EmailFilterController) ListEmailFilter() {
+	page, perr := c.GetInt64("page", 0)
+	if perr != nil {
+		c.ErrorJson(202410161508191, perr.Error(), nil)
+	}
+	size, serr := c.GetInt64("size", 10)
+	if serr != nil {
+		c.ErrorJson(202410161509195, serr.Error(), nil)
+	}
+	search:=c.GetString("search","")
+
+	orderby := c.GetString("orderby","")
+	neworderby := strings.ReplaceAll(orderby, "-", "")
+	if len(neworderby) > 0 {
+
+		orderbyvaild := utils.Contains([]string{"id"}, neworderby)
+		if !orderbyvaild {
+			c.ErrorJson(202410161509205, "orderby incorrect", nil)
+		}
+	}
+	uid := c.GetSession("uid")
+	accountId := uid.(int64)
+	emailFilter := models.EmailFilter{}
+	emailFilterList, err := emailFilter.ListEmailFilter(accountId, page, size, search, orderby)
+	num,ecerr:=emailFilter.CountEmailFilter(accountId, search)
+	if(ecerr!=nil){
+		c.ErrorJson(202410171506217, ecerr.Error(), nil)
+	}
+	if err != nil {
+		c.ErrorJson(202410161510213, err.Error(), nil)
+	}
+	efdto := []dto.EmailFilterEntityDto{}
+	for _, v := range emailFilterList {
+		efdto = append(efdto, dto.EmailFilterEntityDto{
+			Id:   v.Id,
+			Name: v.Name,
+			CreatedTime: v.Created.Format("2006-01-02 15:04:05"),
+		})
+	}
+	resp := dto.CommonResponse[[]dto.EmailFilterEntityDto]{
+		Record: efdto,
+		Total:    num,
+	}
+	c.SuccessJson(resp)
 }

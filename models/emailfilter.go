@@ -13,6 +13,7 @@ import (
 type EmailFilter struct {
 	Id int64  `orm:"pk;auto"`
 	Name string `orm:"size(50)"`
+	Description string `orm:"type(text);column(description)"`
 	AccountId   *Account   `orm:"rel(fk);on_delete(do_nothing);column(account_id)" valid:"Required"` 
 	Created  time.Time      `orm:"null;auto_now_add;type(datetime)"`
 	Updated  time.Time      `orm:"null;auto_now;type(datetime)"`
@@ -60,7 +61,7 @@ func (u *EmailFilter)CreateEmailFilter(filter *EmailFilter) (int64,error) {
 func (u *EmailFilter)GetEmailFilterById(id int64,accountId int64) (*EmailFilter, error) {
 	o := orm.NewOrm()
 	filter := &EmailFilter{}
-	err := o.QueryTable(u).Filter("id",id).Filter("account_id",accountId).One(filter)
+	err := o.QueryTable(u).Filter("id",id).Filter("account_id",accountId).One(filter,"id","name","description","created","updated")
 	if err == orm.ErrNoRows {
 		return nil, err
 	}
@@ -133,4 +134,47 @@ func (u *EmailFilter)UpdateEmailFilterDetail(id int64,detialIds[]int64,accountId
 		}
 	}
 	return nil
+}
+//list email filter by account id
+func (u *EmailFilter)ListEmailFilter(accountId int64,page int64, size int64, search string,orderby string) ([]*EmailFilter, error) {
+	var emps []*EmailFilter
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+	// orm.Debug = true
+	cond := orm.NewCondition()
+	// qs.Filter("account_id", accountId)
+	cond = cond.And("account_id", accountId)
+	//qs = qs.SetCond(cond1)
+	if(len(search)>0){
+		searchCond := orm.NewCondition()
+		searchCond = searchCond.Or("name__contains", search)
+		//cond =cond.AndCond(cond.Or("tpl_title__contains",search).Or("tpl_content__contains",search))
+		cond = cond.AndCond(searchCond)
+	}
+	qs=qs.SetCond(cond)
+	if(len(orderby)>0){
+		qs=qs.OrderBy(orderby)
+	}else{
+		qs=qs.OrderBy("id")
+	}
+	_,err:=qs.Limit(size, page).All(&emps,"Id","Name","Description","Created","Updated")
+	return emps,err
+}
+//count email filter by account id
+func (u *EmailFilter)CountEmailFilter(accountId int64,search string) (int64, error) {
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+	// qs.Filter("account_id", accountId)
+	cond := orm.NewCondition()
+	// qs.Filter("account_id", accountId)
+	cond = cond.And("account_id", accountId)
+	//qs = qs.SetCond(cond1)
+	if(len(search)>0){
+		searchCond := orm.NewCondition()
+		searchCond = searchCond.Or("name__contains", search)
+		//cond =cond.AndCond(cond.Or("tpl_title__contains",search).Or("tpl_content__contains",search))
+		cond = cond.AndCond(searchCond)
+	}
+	qs=qs.SetCond(cond)
+	return qs.Count()
 }
