@@ -99,20 +99,18 @@ func (u *EmailFilter)DeleteEmailFilter(id int64,accountId int64) error {
 	return err
 }
 //update filter detail to filter item, param is filter id and filter detail id array
-func (u *EmailFilter)UpdateEmailFilterDetail(id int64,detialIds[]int64,accountId int64) error {
+func (u *EmailFilter)UpdateEmailFilterDetail(id int64,accountId int64,detialIds []int64) error {
 	//get old filter detail with filter id
 	fileterDetialModel:=EmailFilterDetail{}
 	oldfilterdetail,_:=fileterDetialModel.GetEmailFilterDetailByFilterId(id,accountId)
-	if(oldfilterdetail!=nil){
-		//delete old filter detail
-		for _,olddetail:=range oldfilterdetail{
-			//remove one if not exist in new detail array
-			oexist := utils.ContainsType(detialIds, olddetail.Id)
-			if(!oexist){
-				fderr:=fileterDetialModel.DeleteEmailFilterDetail(olddetail.Id,accountId)
-				if(fderr!=nil){
-					return fderr
-				}
+	//delete old filter detail
+	for _,olddetail:=range oldfilterdetail{
+		//remove one if not exist in new detail array
+		oexist := utils.ContainsType(detialIds, olddetail.Id)
+		if(!oexist){
+			fderr:=fileterDetialModel.DeleteEmailFilterDetail(olddetail.Id,accountId)
+			if(fderr!=nil){
+				return fderr
 			}
 		}
 	}

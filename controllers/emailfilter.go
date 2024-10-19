@@ -52,7 +52,9 @@ func (c *EmailFilterController) CreateEmailFilter() {
 	// }
 	// c.SuccessJson(dto.IdResponse{Id: id})
 	emailFilterdto := dto.EmailFilterEntityDto{}
-
+	// nerr := json.NewDecoder(c.Ctx.Input.RequestBody).Decode(&emailFilterdto)
+	// logs.Error(nerr)
+	logs.Info(c.Ctx.Input.RequestBody)
 	var err error
 	if err = json.Unmarshal(c.Ctx.Input.RequestBody, &emailFilterdto); err == nil {
 		emailFilter := models.EmailFilter{}
@@ -63,6 +65,7 @@ func (c *EmailFilterController) CreateEmailFilter() {
 		if err != nil {
 			c.ErrorJson(20241014144062, "create email filter error", nil)
 		}
+		var detialIds []int64
 		for _, v := range emailFilterdto.FilterDetails {
 
 			emailFilterDetail := models.EmailFilterDetail{}
@@ -78,14 +81,21 @@ func (c *EmailFilterController) CreateEmailFilter() {
 					c.ErrorJson(20241014144276, eferr.Error(), nil)
 				}else{
 					emailFilterDetail.Id=eId
+					detialIds = append(detialIds, eId)
 				}
 			}else{
 				
 				emailFilterDetail.Id=v.Id
 
-				emailFilterDetail.UpdateEmailFilterDetail(&emailFilterDetail)
+				ferr:=emailFilterDetail.UpdateEmailFilterDetail(&emailFilterDetail)
+				if(ferr!=nil){
+					c.ErrorJson(20241019211692, ferr.Error(), nil)
+				}
+				detialIds = append(detialIds, v.Id)
 			}
 		}
+
+		emailFilter.UpdateEmailFilterDetail(id,accountId,detialIds)
 		c.SuccessJson(dto.IdResponse{Id: id})
 	}else{
 		logs.Error(err)
@@ -142,6 +152,7 @@ func (c *EmailFilterController) UpdateEmailFilter() {
 		if err != nil {
 			c.ErrorJson(202410141451139, err.Error(), nil)
 		}
+		var detialIds []int64
 		for _, v := range emailFilterdto.FilterDetails {
 
 			emailFilterDetail := models.EmailFilterDetail{}
@@ -157,6 +168,7 @@ func (c *EmailFilterController) UpdateEmailFilter() {
 					c.ErrorJson(20241014144276, eferr.Error(), nil)
 				}else{
 					emailFilterDetail.Id=eId
+					detialIds = append(detialIds, eId)
 				}
 			}else{
 				
@@ -164,6 +176,7 @@ func (c *EmailFilterController) UpdateEmailFilter() {
 
 				emailFilterDetail.UpdateEmailFilterDetail(&emailFilterDetail)
 			}
+			emailFilter.UpdateEmailFilterDetail(id,accountId,detialIds)
 		}
 		c.SuccessJson(dto.IdResponse{Id: id})
 	}

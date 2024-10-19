@@ -7,6 +7,7 @@ import (
 "github.com/beego/beego/v2/core/validation"
 	"github.com/beego/beego/v2/client/orm"
 	_ "github.com/go-sql-driver/mysql"
+	//"marketing/utils"
 )
 
 type EmailFilterDetail struct {
@@ -119,3 +120,5 @@ func (u *EmailFilterDetail)GetEmailFilterDetailByFilterId(filterId int64,account
 	}
 	return filterDetails, nil
 }
+
+
