@@ -174,7 +174,11 @@ func (c *EmailFilterController) UpdateEmailFilter() {
 				
 				emailFilterDetail.Id=v.Id
 
-				emailFilterDetail.UpdateEmailFilterDetail(&emailFilterDetail)
+				ferr:=emailFilterDetail.UpdateEmailFilterDetail(&emailFilterDetail)
+				if(ferr!=nil){
+					c.ErrorJson(20241019211692, ferr.Error(), nil)
+				}
+				detialIds = append(detialIds, v.Id)
 			}
 			emailFilter.UpdateEmailFilterDetail(id,accountId,detialIds)
 		}
