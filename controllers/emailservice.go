@@ -3,6 +3,7 @@ import (
 	"github.com/beego/i18n"
 	"marketing/models"
 	"marketing/utils"
+	"marketing/dto"
 )
 
 type EmailserviceController struct {
@@ -16,6 +17,8 @@ func (c *EmailserviceController) ChildPrepare(){
 
 ///add email service
 func (c *EmailserviceController) Addemailservice(){
+	uid := c.GetSession("uid")
+	accountId := uid.(int64)
 	service_name := c.GetString("service_name")
 	if(len(service_name)<1){
 		c.ErrorJson(20220815102320, "get service name error", nil)
@@ -39,7 +42,7 @@ func (c *EmailserviceController) Addemailservice(){
 	if(len(service_port)<1){
 		c.ErrorJson(20220815100631,"get email servive port error",nil)
 	}
-	campaign_id,camErr := c.GetInt64("campaign_id")
+	campaign_id,camErr := c.GetInt64("campaign_id",0)
 	if(camErr!=nil){
 		c.ErrorJson(202208151003, "get campaign id error", nil)
 	}
@@ -47,13 +50,16 @@ func (c *EmailserviceController) Addemailservice(){
 	// if(len(sender)<1){
 	// 	c.ErrorJson(202208151003, "get sender name error", nil)
 	// }
+	var emailCampaign =&models.Campaign{}
+	var ecErr error
+	if(campaign_id!=0){
 	///vail campaign id valid
 	camModel:=models.Campaign{}
-	emailCampaign,ecErr:=camModel.FindCambyid(campaign_id)
+	emailCampaign,ecErr=camModel.FindCambyid(campaign_id)
 	if(ecErr!=nil){
 		c.ErrorJson(20220815101442, "can not find the campaign by the id", nil)
 	}
-
+	}
 	emailSer:=models.EmailService{
 		Name: service_name,
 		From: service_from,
@@ -63,10 +69,33 @@ func (c *EmailserviceController) Addemailservice(){
 		// SenderName: sender,
 		Campaign: emailCampaign,
 		Status: 1,
+		AccountId:  &models.Account{Id: accountId},
 	}
 	emId, emErr:=emailSer.Createemailser(emailSer)
 	if(emErr!=nil){
 		c.ErrorJson(20220815101754, emErr.Error(), nil)
 	}
-	c.SuccessJson(emId)
+	c.SuccessJson(dto.IdResponse{Id: emId})
+}
+//get email service by id
+
+func (c *EmailserviceController) Getemailservice(){
+	id, _ := c.GetInt64(":id")
+	uid := c.GetSession("uid")
+	accountId := uid.(int64)
+	emailSer := models.EmailService{}
+	serEntity, err := emailSer.GetEmailServiceById(id, accountId)
+	if err != nil {
+		c.ErrorJson(20220815102320, "get email service error", nil)
+	}
+	emailServiceEntityDto:=dto.EmailServiceEntityDto{
+		Id: serEntity.Id,
+		From: serEntity.From,
+		Password: serEntity.Password,
+		Host: serEntity.Host,
+		Port: serEntity.Port,
+		Name: serEntity.Name,
+		Ssl: serEntity.Ssl,
+	}
+	c.SuccessJson(emailServiceEntityDto)
 }

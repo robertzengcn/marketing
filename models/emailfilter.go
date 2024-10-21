@@ -61,7 +61,7 @@ func (u *EmailFilter)CreateEmailFilter(filter *EmailFilter) (int64,error) {
 func (u *EmailFilter)GetEmailFilterById(id int64,accountId int64) (*EmailFilter, error) {
 	o := orm.NewOrm()
 	filter := &EmailFilter{}
-	err := o.QueryTable(u).Filter("id",id).Filter("account_id",accountId).One(filter,"id","name","description","created","updated")
+	err := o.QueryTable(u).Filter("id",id).Filter("account_id",accountId).One(filter,"id","name","Description","created","updated")
 	if err == orm.ErrNoRows {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func (u *EmailFilter)ListEmailFilter(accountId int64,page int64, size int64, sea
 	if(len(orderby)>0){
 		qs=qs.OrderBy(orderby)
 	}else{
-		qs=qs.OrderBy("id")
+		qs=qs.OrderBy("-id")
 	}
 	_,err:=qs.Limit(size, page).All(&emps,"Id","Name","Description","Created","Updated")
 	return emps,err

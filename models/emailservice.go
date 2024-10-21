@@ -24,9 +24,11 @@ type EmailService struct {
 	Port     string    `orm:"size(4)" valid:"Required"`
 	Campaign *Campaign `orm:"rel(fk);on_delete(do_nothing);column(campaign_id)"`
 	Name     string    `orm:"size(250);description(the name of mailservice)"`
+	Ssl      int8       `orm:"size(1);default(1);column(ssl);description(whether to use ssl)"`
 	// SenderName string  `orm:"size(250);"`
 	Status   int       `orm:"size(1);default(1);description(this mean status of the mailservice)"`
 	Usetime  time.Time `orm:"null;type(datetime)"`
+	AccountId   *Account   `orm:"rel(fk);on_delete(do_nothing);column(account_id)" valid:"Required"` 
 }
 
 ///defined table name
@@ -312,4 +314,14 @@ func (u *EmailService)CreateRescsv(filepath string)([]EmailService,error){
         }
     }
     return EmailServiceArrs,nil
+}
+//get email service by id and account id
+func (u *EmailService)GetEmailServiceById(id int64,accountId int64) (*EmailService, error) {
+	o := orm.NewOrm()
+	e := &EmailService{}
+	err := o.QueryTable(e).Filter("Id", id).Filter("account_id", accountId).One(e)
+	if err == orm.ErrNoRows {
+		return nil, err
+	}
+	return e, nil
 }

@@ -113,6 +113,7 @@ func (c *EmailFilterController) GetEmailFilterById() {
 	accountId := uid.(int64)
 	emailFilter := models.EmailFilter{}
 	FilterEntity, err := emailFilter.GetEmailFilterById(id, accountId)
+	logs.Info(FilterEntity)
 	if err != nil {
 		c.ErrorJson(20220815102320, "get email filter error", nil)
 	}
