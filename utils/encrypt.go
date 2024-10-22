@@ -4,8 +4,12 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
+	"errors"
+	"strings"
 	//"fmt"
+	"github.com/beego/beego/v2/adapter/logs"
 	beego "github.com/beego/beego/v2/server/web"
+	//"google.golang.org/protobuf/internal/errors"
 )
 
 var bytes = []byte{35, 46, 57, 24, 85, 35, 24, 74, 87, 35, 88, 98, 66, 32, 14, 05}
@@ -13,8 +17,15 @@ var bytes = []byte{35, 46, 57, 24, 85, 35, 24, 74, 87, 35, 88, 98, 66, 32, 14, 0
 
 
 func GetSecret() (string,error) {
-	return beego.AppConfig.String("dataEncrykey")
+	key,err:=beego.AppConfig.String("dataEncrykey")
 	// This should be in an env file in production
+	if err != nil { 
+		return "", err
+	}
+
+	keystring:=strings.TrimSpace(key)
+
+	return keystring,nil
 	
 }
 func Encode(b []byte) string {
@@ -34,6 +45,10 @@ func Encrypt(text string) (string, error) {
 	if(err != nil){
 		return "", err
 	}
+	if(len(MySecret) < 1){
+		return "", errors.New("secret key is empty")
+	}
+	logs.Info(MySecret)
 	block, err := aes.NewCipher([]byte(MySecret))
 	if err != nil {
 		return "", err

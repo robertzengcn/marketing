@@ -9,3 +9,10 @@ type EmailServiceEntityDto struct {
 	Name    string     `json:"name"`
 	Ssl    int8     `json:"ssl"`
 }
+type EmailServiceListDto struct {
+	Id int64 `json:"id"`
+	Name    string     `json:"name"`
+	From     string `json:"from"`
+	Host     string   `json:"host"`
+	CreateTime string `json:"create_time"`
+}
