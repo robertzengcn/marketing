@@ -44,6 +44,11 @@ func (c *EmailserviceController) Addemailservice(){
 	if(len(service_port)<1){
 		c.ErrorJson(20220815100631,"get email servive port error",nil)
 	}
+	ssl,sslErr := c.GetInt8("ssl",0)
+	if(sslErr!=nil){
+		c.ErrorJson(20241022143549, "get ssl error", nil)
+	}
+
 	campaign_id,camErr := c.GetInt64("campaign_id",0)
 	if(camErr!=nil){
 		c.ErrorJson(202208151003, "get campaign id error", nil)
@@ -77,6 +82,7 @@ func (c *EmailserviceController) Addemailservice(){
 		Campaign: emailCampaign,
 		Status: 1,
 		AccountId:  &models.Account{Id: accountId},
+		Ssl: ssl,
 	}
 	var emId int64
 	var emErr error
