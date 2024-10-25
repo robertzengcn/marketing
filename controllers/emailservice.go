@@ -51,7 +51,6 @@ func (c *EmailserviceController) Addemailservice(){
 	if(sslErr!=nil){
 		c.ErrorJson(20241022143549, "get ssl error", nil)
 	}
-
 	campaign_id,camErr := c.GetInt64("campaign_id",0)
 	if(camErr!=nil){
 		c.ErrorJson(202208151003, "get campaign id error", nil)
