@@ -115,7 +115,7 @@ func (c *EmailFilterController) GetEmailFilterById() {
 	FilterEntity, err := emailFilter.GetEmailFilterById(id, accountId)
 	logs.Info(FilterEntity)
 	if err != nil {
-		c.ErrorJson(20220815102320, "get email filter error", nil)
+		c.ErrorJson(202410241405118, "get email filter error", nil)
 	}
 	filterDetailModel := models.EmailFilterDetail{}
 

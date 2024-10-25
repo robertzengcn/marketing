@@ -21,7 +21,7 @@ type EmailService struct {
 	From     string    `orm:"size(250)" valid:"Required"`
 	Password string    `orm:"size(250)" valid:"Required"`
 	Host     string    `orm:"size(150)" valid:"Required"`
-	Port     string    `orm:"size(4)" valid:"Required"`
+	Port     string    `orm:"size(5)" valid:"Required"`
 	Campaign *Campaign `orm:"rel(fk);on_delete(do_nothing);column(campaign_id)"`
 	Name     string    `orm:"size(250);description(the name of mailservice)"`
 	Ssl      int8       `orm:"size(1);default(1);column(ssl);description(whether to use ssl)"`

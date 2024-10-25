@@ -23,7 +23,7 @@ func (c *EmailserviceController) Addemailservice(){
 	accountId := uid.(int64)
 	service_name := c.GetString("service_name")
 	if(len(service_name)<1){
-		c.ErrorJson(20220815102320, "get service name error", nil)
+		c.ErrorJson(20241024140626, "get service name error", nil)
 	}
 	service_from := c.GetString("service_from")
 	if(len(service_from)<1){
@@ -44,7 +44,10 @@ func (c *EmailserviceController) Addemailservice(){
 	if(len(service_port)<1){
 		c.ErrorJson(20220815100631,"get email servive port error",nil)
 	}
-	ssl,sslErr := c.GetInt8("ssl",0)
+	if(len(service_port)>5){
+		c.ErrorJson(20241024142548,"port length is too long",nil)
+	}
+	ssl,sslErr := c.GetInt8("service_ssl",0)
 	if(sslErr!=nil){
 		c.ErrorJson(20241022143549, "get ssl error", nil)
 	}
@@ -109,7 +112,7 @@ func (c *EmailserviceController) Getemailservice(){
 	emailSer := models.EmailService{}
 	serEntity, err := emailSer.GetEmailServiceById(id, accountId)
 	if err != nil {
-		c.ErrorJson(20220815102320, "get email service error", nil)
+		c.ErrorJson(202410241006112, "get email service error", nil)
 	}
 	//decrypted password
 	passwrod,uerr:=utils.Decrypt(serEntity.Password)
@@ -141,11 +144,11 @@ func (c *EmailserviceController) Deleteemailservice(){
 		c.ErrorJson(20220815102320, ereserr.Error(), nil)
 	}
 	if eres == nil {
-		c.ErrorJson(20220815102320, "email service not exist", nil)
+		c.ErrorJson(202410241406144, "email service not exist", nil)
 	}
 	err := emailSer.DeleteEmailService(id,accountId)
 	if err != nil {
-		c.ErrorJson(20220815102320, err.Error(), nil)
+		c.ErrorJson(202410241407148, err.Error(), nil)
 	}
 	
 	c.SuccessJson(dto.IdResponse{Id: id})

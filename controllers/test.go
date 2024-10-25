@@ -43,7 +43,7 @@ func (c *TestController) Testsendemail() {
 	}
 	toemail := c.GetString("to_email")
 	if len(toemail) < 1 {
-		c.ErrorJson(20220815102320, "get to email error", nil)
+		c.ErrorJson(20241024140746, "get to email error", nil)
 	}
 	if !utils.ValidEmail(toemail) {
 		c.ErrorJson(20220816102775, "to email format error", nil)
