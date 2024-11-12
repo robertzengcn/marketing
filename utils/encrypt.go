@@ -31,12 +31,13 @@ func GetSecret() (string,error) {
 func Encode(b []byte) string {
 	return base64.StdEncoding.EncodeToString(b)
 }
-func Decode(s string) []byte {
+func Decode(s string) ([]byte,error) {
 	data, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
-		panic(err)
+		// panic(err)
+		return nil,err
 	}
-	return data
+	return data,nil
 }
 
 // Encrypt method is to encrypt or hide any classified text
@@ -70,7 +71,10 @@ func Decrypt(text string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	cipherText := Decode(text)
+	cipherText,derr := Decode(text)
+	if(derr != nil){
+		return "",derr
+	}
 	cfb := cipher.NewCFBDecrypter(block, bytes)
 	plainText := make([]byte, len(cipherText))
 	cfb.XORKeyStream(plainText, cipherText)

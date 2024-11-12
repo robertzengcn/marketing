@@ -1,10 +1,13 @@
 package controllers
+
 import (
-	"github.com/beego/i18n"
+	"marketing/dto"
 	"marketing/models"
 	"marketing/utils"
-	"marketing/dto"
 	"strings"
+
+	// "github.com/beego/beego/v2/adapter/logs"
+	"github.com/beego/i18n"
 )
 
 type EmailserviceController struct {
@@ -109,9 +112,11 @@ func (c *EmailserviceController) Getemailservice(){
 	uid := c.GetSession("uid")
 	accountId := uid.(int64)
 	emailSer := models.EmailService{}
+	// logs.Info(id)
+	// logs.Info(accountId)
 	serEntity, err := emailSer.GetEmailServiceById(id, accountId)
 	if err != nil {
-		c.ErrorJson(202410241006112, "get email service error", nil)
+		c.ErrorJson(202410241006112, err.Error(), nil)
 	}
 	//decrypted password
 	passwrod,uerr:=utils.Decrypt(serEntity.Password)
