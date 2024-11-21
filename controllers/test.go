@@ -43,7 +43,7 @@ func (c *TestController) Testsendemail() {
 	}
 	toemail := c.GetString("to_email")
 	if len(toemail) < 1 {
-		c.ErrorJson(20220815102320, "get to email error", nil)
+		c.ErrorJson(20241024140746, "get to email error", nil)
 	}
 	if !utils.ValidEmail(toemail) {
 		c.ErrorJson(20220816102775, "to email format error", nil)
@@ -101,8 +101,10 @@ func (c *TestController) Checkemailsend() {
 	c.SuccessJson(nil)
 }
 func (c *TestController) Getadultkeyword() {
+	uid := c.GetSession("uid")
+	accountId:=uid.(int64)
 	keywordModel := models.Keyword{}
-	err := keywordModel.Getsexkeyword()
+	err := keywordModel.Getsexkeyword(accountId)
 	if err != nil {
 		logs.Error(err)
 		c.ErrorJson(202211170947, "error", err)
@@ -112,9 +114,11 @@ func (c *TestController) Getadultkeyword() {
 
 ///create task by schedule
 func (c *TestController) Createtasksched() {
+	uid := c.GetSession("uid")
+	accountId:=uid.(int64)
 	scheduleid, _ := c.GetInt64("scheduleid")
 	scheduleModel := models.Schedule{}
-	sId, sErr := scheduleModel.Createtask(scheduleid)
+	sId, sErr := scheduleModel.Createtask(scheduleid,accountId)
 	if sErr != nil {
 		logs.Error(sErr)
 		c.ErrorJson(202211170947, sErr.Error(), sErr)
@@ -122,6 +126,8 @@ func (c *TestController) Createtasksched() {
 	c.SuccessJson(sId)
 }
 func (c *TestController) CreatedayTask() {
+	uid := c.GetSession("uid")
+	accountId:=uid.(int64)
 	tp := c.GetString("type")
 	sin := c.GetString("seachenginer", "google")
 	scheduleModel := models.Schedule{}
@@ -130,7 +136,7 @@ func (c *TestController) CreatedayTask() {
 		logs.Error(schErr)
 		c.ErrorJson(202211191514126, schErr.Error(), nil)
 	}
-	staId, staerr := scheduleModel.Createtask(schVar.Id)
+	staId, staerr := scheduleModel.Createtask(schVar.Id,accountId)
 	if staerr != nil {
 		logs.Error(staerr)
 		c.ErrorJson(202211191514131, staerr.Error(), nil)
@@ -143,18 +149,23 @@ func (c *TestController) CreatedayTask() {
 }
 
 func (c *TestController) Getkeywordbytag() {
+	uid := c.GetSession("uid")
+	accountId:=uid.(int64)
+
 	var testarr []string
 	testarr = append(testarr, "adult_site")
 	keywordModel := models.Keyword{}
-	kArr, kErr := keywordModel.Getkeywordbytag(testarr, 5)
+	kArr, kErr := keywordModel.Getkeywordbytag(testarr, 5,accountId)
 	if kErr != nil {
 		c.ErrorJson(202211201058144, kErr.Error(), nil)
 	}
 	c.SuccessJson(kArr)
 }
 func (c *TestController) Getkeywordapi() {
+	uid := c.GetSession("uid")
+	accountId:=uid.(int64)
 	keywordModel := models.Keyword{}
-	_, kerr := keywordModel.Getkeywordapi()
+	_, kerr := keywordModel.Getkeywordapi(accountId)
 	if kerr != nil {
 		c.ErrorJson(202212011410152, kerr.Error(), nil)
 	}
@@ -163,16 +174,19 @@ func (c *TestController) Getkeywordapi() {
 
 //load csv file api
 func (c *TestController) Loadkeywordapi() {
+	uid := c.GetSession("uid")
+	accountId:=uid.(int64)
+
 	//campaign_id, _ := c.GetInt64("campaign_id")
 	file := c.GetString("filepath")
 	keywordModel := models.Keyword{}
-	keywordlist, kerr := keywordModel.CreateRescsv(file)
+	keywordlist, kerr := keywordModel.CreateRescsv(file,accountId)
 	if kerr != nil {
 		c.ErrorJson(202303011019, kerr.Error(), nil)
 	}
 	for _, v := range keywordlist {
 		// v=campaign_id
-		_, kerr := keywordModel.Savekeyworddb(v, v.Tag)
+		_, kerr := keywordModel.Savekeyworddb(v, v.Tag.TagId,accountId)
 		if kerr != nil {
 			logs.Error(kerr)
 		}

@@ -21,12 +21,16 @@ type EmailService struct {
 	From     string    `orm:"size(250)" valid:"Required"`
 	Password string    `orm:"size(250)" valid:"Required"`
 	Host     string    `orm:"size(150)" valid:"Required"`
-	Port     string    `orm:"size(4)" valid:"Required"`
+	Port     string    `orm:"size(5)" valid:"Required"`
 	Campaign *Campaign `orm:"rel(fk);on_delete(do_nothing);column(campaign_id)"`
 	Name     string    `orm:"size(250);description(the name of mailservice)"`
+	Ssl      int8       `orm:"size(1);default(1);column(ssl);description(whether to use ssl)"`
 	// SenderName string  `orm:"size(250);"`
 	Status   int       `orm:"size(1);default(1);description(this mean status of the mailservice)"`
 	Usetime  time.Time `orm:"null;type(datetime)"`
+	AccountId   *Account   `orm:"rel(fk);on_delete(do_nothing);column(account_id)" valid:"Required"`
+	Created  time.Time      `orm:"null;auto_now_add;type(datetime)"`
+	Updated  time.Time      `orm:"null;auto_now;type(datetime)"` 
 }
 
 ///defined table name
@@ -312,4 +316,104 @@ func (u *EmailService)CreateRescsv(filepath string)([]EmailService,error){
         }
     }
     return EmailServiceArrs,nil
+}
+//get email service by id and account id
+func (u *EmailService)GetEmailServiceById(id int64,accountId int64) (*EmailService, error) {
+	o := orm.NewOrm()
+	e := &EmailService{}
+	err := o.QueryTable(e).Filter("Id", id).Filter("account_id", accountId).One(e)
+	if err == orm.ErrNoRows {
+		return nil, err
+	}
+	return e, nil
+}
+//update email service by id and account id
+func (u *EmailService)UpdateEmailService(e *EmailService) error {
+	valid := validation.Validation{}
+	
+	b, err := valid.Valid(e)
+	if err != nil {
+		
+	   return err
+	}
+	if !b {
+
+		var errMessage string
+	 // validation does not pass
+	 for _, err := range valid.Errors {
+		// log.Println(err.Key, err.Message)
+		errMessage+=err.Key+":"+err.Message
+		}
+		return errors.New(errMessage)
+	}
+	//check email service belong to the user
+	uef,uerr:=u.GetEmailServiceById(e.Id,e.AccountId.Id)
+	if uerr!=nil{
+		return uerr
+	}
+	if(uef==nil){
+		return errors.New("email service not found")
+	}
+	o := orm.NewOrm()
+	_, ierr := o.Update(e)
+	return ierr
+}
+///get email service list by account id
+func (u *EmailService)GetEmailServiceListByAccountId(accountId int64, page int64, size int64, search string,orderby string)([]*EmailService,error){
+	
+	var emps []*EmailService
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+	// qs.Filter("account_id", accountId)
+	cond := orm.NewCondition()
+	// qs.Filter("account_id", accountId)
+	cond = cond.And("account_id", accountId)
+	//qs = qs.SetCond(cond1)
+	if(len(search)>0){
+		searchCond := orm.NewCondition()
+		searchCond = searchCond.Or("name__contains", search).Or("from__contains", search).Or("host__contains", search)
+		//cond =cond.AndCond(cond.Or("tpl_title__contains",search).Or("tpl_content__contains",search))
+		cond = cond.AndCond(searchCond)
+	}
+	qs=qs.SetCond(cond)
+	if(len(orderby)>0){
+		qs=qs.OrderBy(orderby)
+	}else{
+		qs=qs.OrderBy("-id")
+	}
+	qs.Limit(size, page).All(&emps)
+	
+	return emps,nil
+}
+//delete email service by id and account id
+func (u *EmailService)DeleteEmailService(id int64,accountId int64) error {
+	//check email service belong to the user
+	uef,uerr:=u.GetEmailServiceById(id,accountId)
+	if uerr!=nil{
+		return uerr
+	}
+	if(uef==nil){
+		return errors.New("email service not found")
+	}
+	o := orm.NewOrm()
+	_, err := o.Delete(&EmailService{Id: id})
+	return err
+}
+//count email service by account id
+func (u *EmailService)CountEmailService(accountId int64,search string) (int64, error) {
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+	// qs.Filter("account_id", accountId)
+	cond := orm.NewCondition()
+	// qs.Filter("account_id", accountId)
+	cond = cond.And("account_id", accountId)
+	//qs = qs.SetCond(cond1)
+	if(len(search)>0){
+		searchCond := orm.NewCondition()
+		searchCond = searchCond.Or("name__contains", search).Or("from__contains", search).Or("host__contains", search)
+		//cond =cond.AndCond(cond.Or("tpl_title__contains",search).Or("tpl_content__contains",search))
+		cond = cond.AndCond(searchCond)
+	}
+	qs=qs.SetCond(cond)
+	return qs.Count()
 }

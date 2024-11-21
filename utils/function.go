@@ -22,6 +22,12 @@ func Init() {
 	beego.AddFuncMap("Contains", Contains)
 	//add new function in here
 }
+type NumberStr interface {
+    int64 | float64| string
+}
+type Ints interface{
+	int64 | int|int8|int16|int32
+}
 
 //valid email valid
 func ValidEmail(email string) bool {
@@ -40,6 +46,14 @@ func Contains(s []string, str string) bool {
 		}
 	}
 
+	return false
+}
+func ContainsType[V NumberStr](s []V, str V)bool{
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
 	return false
 }
 
@@ -172,5 +186,13 @@ func Writetofile(filename string, data string) error {
 		return err
 	}
 	return nil
+}
+//convert int 1 or 0 to bool
+func IntToBool[V Ints](i V) bool {
+	// if i == 1 {
+	// 	return true
+	// }
+	// return false
+	return i==1;
 }
 

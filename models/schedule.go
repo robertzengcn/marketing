@@ -2,7 +2,7 @@ package models
 
 import (
 	"errors"
-	"strings"
+	// "strings"
 	"time"
 
 	"github.com/beego/beego/v2/client/orm"
@@ -75,7 +75,7 @@ func (u *Schedule)Findallschedule(cyc string)([]Schedule,error){
 
 
 ///create task in schedule
-func (u *Schedule)Createtask(scheduleId int64)(int64,error){
+func (u *Schedule)Createtask(scheduleId int64,accountId int64)(int64,error){
 	scheduleModel:=Schedule{}
 	o := orm.NewOrm()
 	qs := o.QueryTable(u)
@@ -96,13 +96,17 @@ func (u *Schedule)Createtask(scheduleId int64)(int64,error){
 		TaskStatus: &taskstatusModel,
 		CampaignId: campaignVar,
 	}
-	tags :=strings.Split(campaignVar.Tags,",")
+	var tags []string
+	for _, v := range campaignVar.Tags {
+		tags = append(tags, v.TagName)
+	}
+	// tags :=strings.Split(campaignVar.Tags,",")
 	// logs.Info(tags)
 	if(len(tags)<=0){
 		return 0,errors.New("tag empty")
 	}
 	keywordModel:=Keyword{}
-	keywordArr,kErr:=keywordModel.Getkeywordbytag(tags,5)
+	keywordArr,kErr:=keywordModel.Getkeywordbytag(tags,5,accountId)
 	if(kErr!=nil){
 		return 0,kErr
 	}

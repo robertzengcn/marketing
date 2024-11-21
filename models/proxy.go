@@ -2,11 +2,11 @@ package models
 
 import (
 	// "encoding/base64"
-	"strings"
-	"time"
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
 	"github.com/parnurzeal/gorequest"
+	"strings"
+	"time"
 )
 
 type Proxy struct {
@@ -20,8 +20,9 @@ type Proxy struct {
 	CountryCode string    `orm:"size(20)" json:"country_code"`
 	Addtime     time.Time `orm:"auto_now_add;type(datetime)"`
 	Checktime   time.Time `orm:"null;type(datetime)"`
-	Source 		string    `orm:"size(20)"`
-	Usetime	 time.Time `orm:"null;type(datetime)"`
+	Source      string    `orm:"size(20)"`
+	Usetime     time.Time `orm:"null;type(datetime)"`
+	Account     *Account  `orm:"rel(fk);on_delete(do_nothing);column(account_id)"`
 	//Googleenable int  	 `orm:"size(1);default(0);description(whether the proxy is enable on google)"`
 }
 
@@ -38,18 +39,20 @@ func init() {
 func (u *Proxy) TableEngine() string {
 	return "INNODB"
 }
+
 //get proxy type
-func (u *Proxy) Getproxytype() (Proxyway) {
-	webproxy:=ProxyWebshare{}
+func (u *Proxy) Getproxytype() Proxyway {
+	webproxy := ProxyWebshare{}
 	return &webproxy
 }
 
-//save proxy to database
+//save new proxy to database
 func (u *Proxy) Save(proxy Proxy) (int64, error) {
 	o := orm.NewOrm()
 	qs := o.QueryTable(u)
+
 	var proxyitem Proxy
-	err := qs.Filter("host", proxy.Host).Filter("port", proxy.Port).Filter("user", proxy.User).Filter("pass", proxy.Pass).Filter("protocol", proxy.Protocol).One(&proxyitem)
+	err := qs.Filter("host", proxy.Host).Filter("port", proxy.Port).Filter("user", proxy.User).Filter("pass", proxy.Pass).Filter("protocol", proxy.Protocol).Filter("account_id", proxy.Account).One(&proxyitem)
 	// logs.Error(err)
 	if err == orm.ErrNoRows {
 		id, err := o.Insert(&proxy)
@@ -64,29 +67,29 @@ func (u *Proxy) GetProxylist(pxw Proxyway) ([]Proxy, error) {
 }
 
 //handle proxy from third party
-func (u *Proxy) Handleproxy() ( error) {
+func (u *Proxy) Handleproxy() error {
 	// pxw := ProxyWebshare{}
 	//pxw := Asocksproxy{}
-	pxw :=u.Getproxytype()
-	proarr,perr:=u.GetProxylist(pxw)
+	pxw := u.Getproxytype()
+	proarr, perr := u.GetProxylist(pxw)
 	logs.Info(proarr)
-	if(perr!=nil){
+	if perr != nil {
 		logs.Error(perr)
 		return nil
 	}
 	//range proxy list,save to database
 	for _, proxy := range proarr {
-		var proxyStr=proxy.Protocol+"://"+proxy.User+":"+proxy.Pass+"@"+proxy.Host+":"+proxy.Port
-		cRes:=u.CheckProxy(proxyStr)
-		
-		if(!cRes){
+		var proxyStr = proxy.Protocol + "://" + proxy.User + ":" + proxy.Pass + "@" + proxy.Host + ":" + proxy.Port
+		cRes := u.CheckProxy(proxyStr)
+
+		if !cRes {
 			logs.Error(cRes)
 			pxw.Replaceproxy(proxy.Host)
 			//disable proxy
-			u.DisableProxydb(proxy.Host,proxy.Port)
-			continue;
+			u.DisableProxydb(proxy.Host, proxy.Port)
+			continue
 		}
-
+		proxy.Account = &Account{Id: 1}
 		_, err := u.Save(proxy)
 		if err != nil {
 			logs.Error(err)
@@ -97,6 +100,7 @@ func (u *Proxy) Handleproxy() ( error) {
 }
 
 var CheckURL = "https://httpbin.org/get"
+
 // check whether a string is work
 //https://github.com/titanhw/go-proxy-checker/blob/master/core/checker.go
 func (u *Proxy) CheckProxy(proxy string) bool {
@@ -107,7 +111,7 @@ func (u *Proxy) CheckProxy(proxy string) bool {
 	if !strings.Contains(proxy, "//") {
 		proxy = "//" + proxy
 	}
-	
+
 	// get resources from pool and release after operations
 	// request := requestPool.Get().(*gorequest.SuperAgent)
 	// resp := resultPool.Get().(map[string]interface{})
@@ -117,15 +121,15 @@ func (u *Proxy) CheckProxy(proxy string) bool {
 	// do the Request
 	request := gorequest.New()
 	// auth := username+":"+password
-    // basicAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte(auth))
+	// basicAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte(auth))
 	// .Set("Proxy-Authorization", basicAuth)
 	// logs.Info(proxy)
 	_, _, errors := request.Proxy(proxy).Get(CheckURL).EndStruct(&resp)
 	logs.Error(errors)
-	return errors == nil 
+	return errors == nil
 	//return false
 	//logs.Info(resp)
-	
+
 	//return strings.Contains(proxy, resp["origin"].(string))
 }
 
@@ -135,16 +139,16 @@ func (u *Proxy) CheckGoogleProxy(proxy string, types string) bool {
 	if strings.TrimSpace(proxy) == "" {
 		return false
 	}
-	if(types=="google"){
+	if types == "google" {
 		CheckproxyURL = "https://www.google.com"
-	}else{
+	} else {
 		CheckproxyURL = "https://www.bing.com"
 	}
 	// no protocol, add //
 	if !strings.Contains(proxy, "//") {
 		proxy = "//" + proxy
 	}
-	
+
 	// get resources from pool and release after operations
 	// request := requestPool.Get().(*gorequest.SuperAgent)
 	// resp := resultPool.Get().(map[string]interface{})
@@ -153,39 +157,113 @@ func (u *Proxy) CheckGoogleProxy(proxy string, types string) bool {
 	request := gorequest.New()
 
 	resp, _, errors := request.Proxy(proxy).Get(CheckproxyURL).End()
-	
+
 	if errors != nil {
-	logs.Error(errors)
+		logs.Error(errors)
 		return false
 	}
 	logs.Info(resp.StatusCode)
-	return resp.StatusCode==200
+	return resp.StatusCode == 200
 }
+
 //update proxy
-func (u *Proxy)Updateproxy()(error){
-	pxw :=u.Getproxytype()
+func (u *Proxy) Updateproxy() error {
+	pxw := u.Getproxytype()
 	return pxw.Updateproxy()
 }
+
 //get proxy from local database
-func (u *Proxy)GetProxydb()([]Proxy,error){
+func (u *Proxy) GetProxydb() ([]Proxy, error) {
 	o := orm.NewOrm()
 	var proxylist []Proxy
 	_, err := o.QueryTable(u).Filter("available", 1).OrderBy("usetime", "-addtime").Limit(10).All(&proxylist)
-	for _,proxy:=range proxylist{
-		proxy.Usetime=time.Now()
+	for _, proxy := range proxylist {
+		proxy.Usetime = time.Now()
 		_, err := o.Update(&proxy)
 		if err != nil {
-			return proxylist,err
+			return proxylist, err
 		}
 	}
-	return proxylist,err
+	return proxylist, err
 }
+
 //disable proxy from local database
-func (u *Proxy)DisableProxydb(host string, port string)(int64,error){
+func (u *Proxy) DisableProxydb(host string, port string) (int64, error) {
 	o := orm.NewOrm()
 	qs := o.QueryTable(u)
 	// var proxyitem Proxy
 	return qs.Filter("host", host).Filter("port", port).Update(orm.Params{
 		"available": 0,
 	})
+}
+
+//get proxy by id
+func (u *Proxy) GetProxyById(id int64) (*Proxy, error) {
+	o := orm.NewOrm()
+	var proxy Proxy
+	err := o.QueryTable(new(Proxy)).Filter("id", id).One(&proxy)
+	if err != nil {
+		return nil, err
+	}
+	return &proxy, nil
+}
+func (u *Proxy) Getproxybyaccount(accountId int64, offset int, size int, search string) ([]Proxy, error) {
+	orm.Debug = true
+	o := orm.NewOrm()
+	
+	var proxylist []Proxy
+	cond := orm.NewCondition()
+	qs := o.QueryTable(u)
+	cond = cond.And("account_id", accountId)
+	// qs = qs.SetCond(cond1)
+	if len(search) > 0 {
+		searchCond := orm.NewCondition()
+		searchCond = searchCond.Or("host__contains", search).Or("user__contains", search)
+		//qs = qs.SetCond(cond2)
+		cond = cond.AndCond(searchCond)
+	}
+	qs = qs.SetCond(cond)
+	_, err := qs.OrderBy("-id").Limit(size, offset).All(&proxylist)
+	return proxylist, err
+}
+
+//get proxy count
+func (u *Proxy) GetProxyCountbyaccount(accountId int64, search string) (int64, error) {
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+	cond := orm.NewCondition()
+	cond1 := cond.And("account_id", accountId)
+	qs = qs.SetCond(cond1)
+	if len(search) > 0 {
+		cond2 := (cond.And("host__contains", search).Or("user__contains", search))
+		qs = qs.SetCond(cond2)
+	}
+	return qs.Count()
+}
+
+//delete proxy
+func (u *Proxy) DeleteProxy(id int64, accoutId int64) error {
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+	_, err := qs.Filter("id", id).Filter("account_id", accoutId).Delete()
+	return err
+}
+
+//get proxy detail
+func (u *Proxy) GetProxyDetail(id int64, accoutId int64) (*Proxy, error) {
+	//get proxy detail from db
+	o := orm.NewOrm()
+	var proxy Proxy
+	err := o.QueryTable(new(Proxy)).Filter("id", id).Filter("account_id", accoutId).One(&proxy)
+	if err != nil {
+		return nil, err
+	}
+	return &proxy, nil
+}
+
+//update proxy by id
+func (u *Proxy) UpdateProxy(proxy Proxy) error {
+	o := orm.NewOrm()
+	_, err := o.Update(&proxy)
+	return err
 }

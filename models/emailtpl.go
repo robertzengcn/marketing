@@ -19,6 +19,7 @@ type EmailTpl struct {
 	TplRecord time.Time `orm:"auto_now;type(datetime)"`
 	UpdateTime time.Time `orm:"auto_now;type(datetime)"`
 	Status int `orm:"size(1);default(1);description(this mean status of the email tpl)"`
+	AccountId   *Account   `orm:"rel(fk);on_delete(do_nothing);column(account_id)" valid:"Required"` 
 }
 func (u *EmailTpl) TableName() string {
 	return "email_tpl"
@@ -94,6 +95,104 @@ func (u *EmailTpl)Replacevar(et *EmailTpl, femail *FetchEmail)(*EmailTpl,error){
 	et.TplContent=strings.Replace(et.TplContent,"{$description}",femail.Description,-1)
 	return et,nil
 }
+///get email template by id and account id
+func (u *EmailTpl)GetEmailTplByIdAndAccountId(tplId int64,accountId int64)(*EmailTpl,error){
+	o := orm.NewOrm()
+	emailtpl := EmailTpl{TplId: tplId,AccountId:&Account{Id:accountId}}
+	err := o.Read(&emailtpl,"TplId","AccountId")
+	if(err!=nil){
+		return nil, err	
+	}else{
+		return &emailtpl,nil
+	}
+}
+///get email template list by account id
+func (u *EmailTpl)GetEmailTplListByAccountId(accountId int64, page int64, size int64, search string,orderby string)([]*EmailTpl,error){
+	
+	var emps []*EmailTpl
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+	// qs.Filter("account_id", accountId)
+	cond := orm.NewCondition()
+	// qs.Filter("account_id", accountId)
+	cond = cond.And("account_id", accountId)
+	//qs = qs.SetCond(cond1)
+	if(len(search)>0){
+		searchCond := orm.NewCondition()
+		searchCond = searchCond.Or("tpl_title__contains", search).Or("tpl_content__contains", search)
+		//cond =cond.AndCond(cond.Or("tpl_title__contains",search).Or("tpl_content__contains",search))
+		cond = cond.AndCond(searchCond)
+	}
+	qs=qs.SetCond(cond)
+	if(len(orderby)>0){
+		qs=qs.OrderBy(orderby)
+	}else{
+		qs=qs.OrderBy("-tpl_id")
+	}
+	qs.Limit(size, page).All(&emps)
+	
+	return emps,nil
+}
+///get email list count by account id and search condition
+func (u *EmailTpl)GetEmailTplCountByAccountId(accountId int64,search string)(int64,error){
+	o := orm.NewOrm()
+	qs := o.QueryTable(u)
+	// qs.Filter("account_id", accountId)
+	cond := orm.NewCondition()
+	// qs.Filter("account_id", accountId)
+	cond = cond.And("account_id", accountId)
+	//qs = qs.SetCond(cond1)
+	if(len(search)>0){
+		searchCond := orm.NewCondition()
+		searchCond = searchCond.Or("tpl_title__contains", search).Or("tpl_content__contains", search)
+		//cond =cond.AndCond(cond.Or("tpl_title__contains",search).Or("tpl_content__contains",search))
+		cond = cond.AndCond(searchCond)
+	}
+	qs=qs.SetCond(cond)
+	return qs.Count()
+}
+
+///update email template by id
+func (u *EmailTpl)UpdateEmailTplById(emailtpl EmailTpl)(int64,error){
+	//find item by id
+	et,err:=u.GetOne(emailtpl.TplId)
+	if(err!=nil){
+		return 0,err
+	}
+	//update email item
+	et.TplTitle=emailtpl.TplTitle
+	et.TplContent=emailtpl.TplContent
+	et.CampaignId=emailtpl.CampaignId
+	et.Status=emailtpl.Status
+	o := orm.NewOrm()
+	num, err := o.Update(et)
+	if(err!=nil){
+		return 0,err
+	}
+return num,nil
+}
+
+
+///update email template by id and account id
+func (u *EmailTpl)UpdateEmailTplByIdAndAccountId(emailtpl EmailTpl)(int64,error){
+	//find item by id and account id
+	et,err:=u.GetEmailTplByIdAndAccountId(emailtpl.TplId,emailtpl.AccountId.Id)
+	if(err!=nil){
+		return 0,err
+	}
+	//update email item
+	return u.UpdateEmailTplById(*et)
+}
+///delete email template by id and account id
+func (u *EmailTpl)DeleteEmailTplByIdAndAccountId(tplId int64,accountId int64)(int64,error){
+	o := orm.NewOrm()
+	num, err := o.QueryTable(u).Filter("TplId", tplId).Filter("AccountId",accountId).Delete()
+	if(err!=nil){
+		return 0,err
+	}
+	return num,nil
+}
+
 
 
 
