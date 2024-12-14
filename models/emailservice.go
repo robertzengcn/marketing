@@ -355,6 +355,7 @@ func (u *EmailService)UpdateEmailService(e *EmailService) error {
 		return errors.New("email service not found")
 	}
 	o := orm.NewOrm()
+	logs.Info(e)
 	_, ierr := o.Update(e)
 	return ierr
 }

@@ -110,8 +110,10 @@ func (c *SocialAccountController) Savesocialaccount() {
 		}
 		finId = saId
 	}
+	if(len(proxys)>0){
 	socialAccountlistModel:=models.SocialAccountProxyList{}
 	socialAccountlistModel.UpdateProxysToSocialAccount(finId,proxys)
+	}
 	sap := dto.SocialAccountSaveresp{Id: finId}
 	c.SuccessJson(sap)
 }

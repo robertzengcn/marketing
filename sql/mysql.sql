@@ -9,3 +9,6 @@ ALTER TABLE `mk_task`
 CHANGE COLUMN `campaign_id_id` `campaign_id`  bigint(20) NOT NULL AFTER `task_status_id`;
 
 -- INSERT INTO `mk_account_role` (id,name) VALUES ('1','admin')
+ALTER TABLE mk_social_account DROP COLUMN campaign_id;
+ALTER TABLE mk_social_account DROP COLUMN proxy;
+
