@@ -77,7 +77,7 @@ func (u *AccountToken) GenAccounttoken(account *Account) (token string,err error
 	ac.Account=account
 	ac.TokenVal=token
 	now := time.Now()
-	ac.TokenExpired=now.AddDate(0, 0, 2)
+	ac.TokenExpired=now.AddDate(0, 1, 0)
 	_, err = o.Insert(&ac)
 	return token,err
 }
