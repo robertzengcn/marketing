@@ -37,6 +37,7 @@ func init() {
 
 type UserClaim struct {
 	jwt.RegisteredClaims
+	Name string
 	AccountId    int64 
 	Email string
 	Roles  []string 
@@ -57,6 +58,7 @@ func (u *AccountToken) GenAccounttoken(account *Account) (token string,err error
 		RegisteredClaims: jwt.RegisteredClaims{},
 		AccountId:account.Id,
 		Email: account.Email,
+		Name: account.Name,	
 		// Roles: accountrolearr,
 	}
 	if(account.Roles!=nil){
