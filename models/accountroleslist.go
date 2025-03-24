@@ -24,7 +24,7 @@ func (u *AccountRolesList) TableEngine() string {
 
 func init() {
 	// set default database
-	// orm.RegisterModelWithPrefix("mk_",new(AccountRolesList))
+	orm.RegisterModelWithPrefix("mk_",new(AccountRolesList))
 	// create table
 	// orm.RunSyncdb("default", false, true)
 }

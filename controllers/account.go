@@ -2,7 +2,7 @@ package controllers
 
 import (
 	// beego "github.com/beego/beego/v2/server/web"
-	"github.com/beego/beego/v2/core/logs"
+	//"github.com/beego/beego/v2/core/logs"
 	"github.com/beego/i18n"
 	"marketing/models"
 	// "strconv"
@@ -36,8 +36,8 @@ func (c *AccountController) ChildPrepare() {
 func (c *AccountController) Validaccount() {
 	username := c.GetString("username")
 	pass := c.GetString("password")
-	logs.Info(username)
-	logs.Info(pass)
+	// logs.Info(username)
+	// logs.Info(pass)
 	if len(username) == 0 || len(pass) == 0 {
 		//用户名和邮箱为空
 		c.ErrorJson(20211122163020, c.Tr("email_pass_empty"), nil)

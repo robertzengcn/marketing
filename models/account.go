@@ -95,9 +95,10 @@ func (u *Account) Validaccount(username string, pass string) (Account, error) {
 	o := orm.NewOrm()
 	l := logs.GetLogger()
 	epass := u.EncryptionPass(pass)
+
 	var account Account
 	var err error
-	//l.Println(epass)
+	l.Println(epass)
 	qs := o.QueryTable(new(Account))
 	if utils.ValidEmail(username) {
 		err = qs.Filter("email", username).Filter("password", epass).One(&account, "Id", "Name", "Email")
