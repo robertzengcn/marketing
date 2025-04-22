@@ -130,15 +130,16 @@ func init() {
 		beego.NSRouter("/emailservice/update/:id:int", &controllers.EmailserviceController{}, "post:Addemailservice"),
 		beego.NSRouter("/emailservice/delete/:id:int", &controllers.EmailserviceController{}, "delete:Deleteemailservice"),
 		beego.NSRouter("/emailservice/list", &controllers.EmailserviceController{}, "get:GetServiceList"),
+		beego.NSRouter("/user/login", &controllers.AccountController{}, "post:Validaccount"),
 	)
 	beego.AddNamespace(api)
 
-	user := beego.NewNamespace("/user",
-		beego.NSInclude(
-			&controllers.TestController{},
-		),
-		beego.NSRouter("/login", &controllers.AccountController{}, "post:Validaccount"),
-	)
-	beego.AddNamespace(user)
+	// user := beego.NewNamespace("/user",
+	// 	beego.NSInclude(
+	// 		&controllers.TestController{},
+	// 	),
+	// 	beego.NSRouter("/login", &controllers.AccountController{}, "post:Validaccount"),
+	// )
+	// beego.AddNamespace(user)
 
 }
