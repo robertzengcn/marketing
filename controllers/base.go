@@ -84,6 +84,7 @@ func Filter_user(ctx *context.Context) {
 	s := []string{"/api/login", 
 	// "/admin/login/accountlogin",
 	"/admin/healthcheck",
+	"/api/user/login",
 	// "api/getsobyCam",
 	} //defined url that not need to valid user login
 	// l := logs.GetLogger()
